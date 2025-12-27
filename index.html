@@ -150,6 +150,9 @@
     .tiny { font-size:12px; color:var(--muted); }
 
     @media (max-width:640px){ .company-row { flex-direction:column; align-items:stretch; } .company-row .label{width:auto} }
+    .b-company-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .b-company-row .b-name { flex:1; background:#0e0e10; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.03); color:var(--text) }
+    .b-company-row .b-amt { width:140px; text-align:right; background:#0e0e10; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.03); color:var(--text) }
   </style>
 </head>
 <body>
@@ -200,7 +203,7 @@
         <button id="downloadBtn" class="alt" type="button">Muat turun .txt</button>
         <button id="historyBtn" class="ghost" type="button">History</button>
 
-        <!-- 新增：打开另一个模版的按钮（右侧模版） -->
+        <!-- 打开模版 B 的按钮 -->
         <button id="openTemplateBBtn" class="alt" type="button" title="Buka mod templat lain">Buka Templat Lain →</button>
       </div>
 
@@ -213,20 +216,32 @@
       </div>
     </div>
 
-    <!-- 新增的第二个模版视图（Template B），初始隐藏 -->
+    <!-- Template B: 使用第一页的数据生成用户提供的模版文本 -->
     <div id="templateB" class="hidden" aria-hidden="true">
-      <h1>Template B — Contoh Templat Baru</h1>
+      <h1>Template B — Versi Alternatif</h1>
 
-      <p class="small">Template B 使用主页面的资料生成你提供的格式（公司名单、CS 名称、IC、总金额）。</p>
+      <p class="small">Template B menggunakan data yang sama dengan halaman utama (Nama Pelanggan, 7 家公司名称与金额, Nama Penerima, Nombor IC)。</p>
 
       <div style="margin-top:12px;">
-        <label for="b_title">Tajuk (optional)</label>
-        <input id="b_title" class="form-input" type="text" placeholder="Contoh: Permohonan Khas (tidak perlu)" />
+        <label for="b_name">Nama Pelanggan ( [NAME] )</label>
+        <input id="b_name" class="form-input" type="text" placeholder="Nama Pelanggan" readonly />
       </div>
 
       <div style="margin-top:12px;">
-        <label for="b_note">Nota tambahan (optional)</label>
-        <textarea id="b_note" class="form-input" style="min-height:120px" placeholder="Boleh tambahkan nota di sini jika perlu..."></textarea>
+        <label>7 Produk Syarikat + Amaun</label>
+        <div id="b_companyList" style="margin-top:8px;">
+          <!-- JS 会根据 main 页面公司行填充最多 7 行 -->
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="b_recipient">Nama Penerima (NAMA)</label>
+        <input id="b_recipient" class="form-input" type="text" placeholder="Nama Penerima" readonly />
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="b_ic">Nombor IC</label>
+        <input id="b_ic" class="form-input" type="text" placeholder="Nombor IC" readonly />
       </div>
 
       <div class="controls" style="margin-top:10px;">
@@ -239,7 +254,7 @@
       <pre id="outputB" aria-live="polite"></pre>
 
       <div class="bottom" style="margin-top:12px;">
-        <div class="small">Template B 也会储存在 history</div>
+        <div class="small">Template B juga akan disimpan到历史 (history)</div>
       </div>
     </div>
 
@@ -296,8 +311,10 @@ const totalDisplay = document.getElementById('totalDisplay');
 /* Template B elements */
 const openTemplateBBtn = document.getElementById('openTemplateBBtn');
 const templateB = document.getElementById('templateB');
-const b_title = document.getElementById('b_title');
-const b_note = document.getElementById('b_note');
+const b_name = document.getElementById('b_name');
+const b_companyListEl = document.getElementById('b_companyList');
+const b_recipient = document.getElementById('b_recipient');
+const b_ic = document.getElementById('b_ic');
 const b_generateBtn = document.getElementById('b_generateBtn');
 const b_copyBtn = document.getElementById('b_copyBtn');
 const b_backBtn = document.getElementById('b_backBtn');
@@ -326,6 +343,10 @@ function numberFromInput(s){
   const cleaned = s.toString().replace(/[^\d.\-]/g,'').trim();
   if (cleaned === '') return NaN;
   return parseFloat(cleaned);
+}
+function formatMoneyNumber(n){
+  if (isNaN(n)) return '0';
+  return Math.round(n).toString();
 }
 function formatMoney(n){
   if (isNaN(n)) return 'RM0';
@@ -778,9 +799,47 @@ resetCompaniesBtn.addEventListener('click', () => {
 [nameEl, recipientEl, icEl].forEach(el=>el.addEventListener('input', saveState));
 companyListEl.addEventListener('input', saveState);
 
-/* Template B: open / back / generate / copy */
+/* Template B: sync data from main page and generate the requested template text */
+function populateTemplateBFromMain(){
+  // copy name, recipient, ic
+  b_name.value = nameEl.value || '';
+  b_recipient.value = recipientEl.value || '';
+  b_ic.value = icEl.value || '';
+
+  // build list of up to 7 company name + amount from companyListEl (skip deleted)
+  b_companyListEl.innerHTML = '';
+  const companyEls = Array.from(companyListEl.querySelectorAll('.company-item'));
+  const rows = [];
+  companyEls.forEach((el)=>{
+    if (rows.length >= 7) return;
+    const deleted = el.querySelector('.delCheckbox').checked;
+    if (deleted) return;
+    const cname = (el.querySelector('.labelInput').value || '').trim();
+    const camt = (el.querySelector('.amountInput').value || '').trim();
+    rows.push({name: cname, amount: camt});
+  });
+  // pad to 7 entries if needed
+  while (rows.length < 7) rows.push({name: '', amount: ''});
+
+  rows.forEach((r, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'b-company-row';
+    const n = document.createElement('div');
+    n.className = 'b-name';
+    n.textContent = r.name || `(Company ${idx+1})`;
+    const a = document.createElement('div');
+    a.className = 'b-amt';
+    const amtNum = numberFromInput(r.amount);
+    a.textContent = amtNum && !isNaN(amtNum) ? `RM${Math.round(amtNum)}` : (r.amount ? r.amount : '');
+    div.appendChild(n);
+    div.appendChild(a);
+    b_companyListEl.appendChild(div);
+  });
+}
+
 openTemplateBBtn.addEventListener('click', ()=>{
-  // 切换视图：隐藏主应用，显示 Template B
+  // sync and show
+  populateTemplateBFromMain();
   mainApp.classList.add('hidden');
   mainApp.setAttribute('aria-hidden','true');
   templateB.classList.remove('hidden');
@@ -788,57 +847,69 @@ openTemplateBBtn.addEventListener('click', ()=>{
 });
 
 b_backBtn.addEventListener('click', ()=>{
-  // 返回主应用
   templateB.classList.add('hidden');
   templateB.setAttribute('aria-hidden','true');
   mainApp.classList.remove('hidden');
   mainApp.setAttribute('aria-hidden','false');
 });
 
-b_generateBtn.addEventListener('click', ()=>{
-  // 使用主页面当前字段构建 Template B（按照用户提供的文本格式）
+// build template B text using the exact message the user provided, filling values from main page
+function buildTemplateBText(){
+  // collect fields from main (ensure most up-to-date)
   const name = (nameEl.value || '[NAME]').trim();
   const companyEls = Array.from(companyListEl.querySelectorAll('.company-item'));
-  let companyNames = [];
+  const companies = [];
   let total = 0;
-  companyEls.forEach((el)=>{
-    const nameVal = el.querySelector('.labelInput').value.trim();
-    const amountVal = el.querySelector('.amountInput').value.trim();
+  for (let i=0;i<companyEls.length && companies.length < 7;i++){
+    const el = companyEls[i];
     const deleted = el.querySelector('.delCheckbox').checked;
-    if (deleted) return;
-    // 列表仅包含公司名称（与用户提供的模板一致）
-    companyNames.push(nameVal || '(Syarikat)');
-    const num = numberFromInput(amountVal);
+    if (deleted) continue;
+    const cname = (el.querySelector('.labelInput').value || '').trim();
+    const camtRaw = (el.querySelector('.amountInput').value || '').trim();
+    if (!cname && !camtRaw) {
+      companies.push({name: '', amountRaw: ''});
+      continue;
+    }
+    const num = numberFromInput(camtRaw);
     if (!isNaN(num)) total += num;
+    companies.push({name: cname || '', amountRaw: camtRaw || ''});
+  }
+  while (companies.length < 7) companies.push({name:'', amountRaw:''});
+  const recipient = (recipientEl.value || '').trim();
+  const ic = (icEl.value || '').trim();
+
+  // build the text exactly as user requested
+  const lines = [];
+  lines.push(`📞Hi Boss, Saya ${name} dari Syarikat STAGSMUTUAL（P.C 601）`);
+  lines.push('');
+  lines.push(`*DETAIL BAYARAN:*  `);
+  companies.forEach(c=>{
+    // show company name only (per user text). If you want amounts too, we could include them.
+    lines.push(`${c.name || '(Company)'}`);
   });
-  const detailList = companyNames.length ? companyNames.map(n=>n).join('\n') : '(Tiada bayaran ditetapkan)';
-  const csName = (recipientEl.value || '').trim();
-  const csIc = (icEl.value || '').trim();
-  const totalRounded = Math.round(total);
+  lines.push('');
+  lines.push(`👤 NAMA: ${recipient}`);
+  lines.push(`🆔 IC: ${ic}`);
+  lines.push(`💳 JUMLAH: *RM${formatMoneyNumber(total)}*`);
+  lines.push('');
+  lines.push(`⚠️HARI INI SILA BAYAR *SEBELUM 3:00 PETANG* UNTUK AVOID CAJ`);
+  lines.push('');
+  lines.push(`⚠️SEBELUM 5MIN TRANSFER *MINTA ACC DARIPADA SAYA DAN IKUT SOP*`);
+  lines.push('');
+  lines.push(`TERIMA KASIH🙏`);
+  return { text: lines.join('\n'), total, meta: { recipient: recipient || null, ic: ic || null } };
+}
 
-  // 用户提供的模板文本（已将占位符替换）
-  const output = `📞Hi Boss, Saya ${name} dari Syarikat STAGSMUTUAL（P.C 601）
+b_generateBtn.addEventListener('click', ()=>{
+  const { text, total, meta } = buildTemplateBText();
+  outputB.textContent = text;
 
-*DETAIL BAYARAN:*  
-${detailList}
-
-👤 NAMA: ${csName}
-🆔 IC: ${csIc}
-💳 JUMLAH: *RM${isNaN(totalRounded) ? '0' : totalRounded}*
-
-⚠️HARI INI SILA BAYAR *SEBELUM 3:00 PETANG* UNTUK AVOID CAJ
-
-⚠️SEBELUM 5MIN TRANSFER *MINTA ACC DARIPADA SAYA DAN IKUT SOP*
-
-TERIMA KASIH🙏`;
-
-  outputB.textContent = output;
-
+  // save to history as template B
   const now = new Date().toISOString();
   const entry = {
-    output,
-    total: totalRounded,
-    meta: { title: b_title.value || null },
+    output: text,
+    total: Math.round(total),
+    meta,
     saved_at: now,
     template: 'B'
   };
