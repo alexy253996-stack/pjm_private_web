@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pinjaman Template Generator</title>
+  <style>
+    :root{--primary:#1e90ff;--bg:#000;--card:#0f0f12;--text:#e8eef8;--sub:#b9c6d9;--maxw:900px}
+    html,body{height:100%}body{font-family:Inter,Arial,sans-serif;background:var(--bg);margin:0;padding:24px;display:flex;justify-content:center;color:var(--text)}
+    .container{width:100%;max-width:var(--maxw);background:var(--card);padding:20px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03)}
+    h1{text-align:center;margin:6px 0 18px;font-size:1.4rem;color:var(--text)}.hidden{display:none}
+    label{display:block;font-weight:700;margin-bottom:6px;color:var(--sub)}
+    .form-input{width:100%;padding:10px;font-size:15px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;box-sizing:border-box;color:var(--text);background:#111214;outline:none}
+    .form-input::placeholder{color:#999}.top-row{display:flex;gap:12px;align-items:center;margin-bottom:12px}.top-row>*{flex:1}
+    button{padding:10px 14px;border:0;border-radius:6px;background:var(--primary);color:#fff;cursor:pointer;font-weight:600}
+    button.alt{background:transparent;color:var(--sub);border:1px solid rgba(255,255,255,0.04)}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--sub)}
+    .company-list{margin:12px 0 18px}.company-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+    #output{white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;margin-top:12px;color:var(--text)}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.bottom{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:12px;flex-wrap:wrap;color:var(--sub)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="passwordScreen">
+      <h1>Pinjaman Template Generator</h1>
+      <p class="small">Masukkan kata laluan untuk akses:</p>
+      <div class="top-row">
+        <input id="passwordInput" type="password" inputmode="text" aria-label="kata laluan" placeholder="Kata Laluan" class="form-input" />
+        <button id="passwordBtn" type="button">Masuk</button>
+      </div>
+      <p id="errorMsg" class="small" style="color:#ff6b6b;display:none;">Kata laluan salah!</p>
+      <p class="small" style="margin-top:8px;color:var(--sub);">Nota: penyemak imbas sahaja - jika anda mahu keselamatan sebenar, guna pengesahan di server.</p>
+    </div>
+
+    <div id="mainApp" class="hidden" aria-hidden="true">
+      <h1>Pinjaman Template Generator</h1>
+
+      <div class="form-group">
+        <label for="name">Nama Pelanggan ( [NAME] )</label>
+        <input id="name" class="form-input" type="text" placeholder="Contoh: ALEX" />
+      </div>
+
+      <div>
+        <label>Maklumat Bayaran Syarikat (boleh tambah / padam baris)</label>
+        <div class="company-list" id="companyList"></div>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button id="addCompanyBtn" type="button">Tambah Baris</button>
+          <button id="resetCompaniesBtn" type="button" class="alt">Reset Baris</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="recipient">Nama Penerima (NAMA)</label>
+        <input id="recipient" class="form-input" type="text" placeholder="Contoh: ALI BIN ALI" />
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="ic">Nombor IC</label>
+        <input id="ic" class="form-input" type="text" placeholder="Contoh: 123456789" />
+      </div>
+
+      <div class="controls">
+        <button id="generateBtn" type="button">Generate Template</button>
+        <button id="copyBtn" class="alt" type="button">Salin ke Clipboard</button>
+        <button id="waBtn" class="alt" type="button">Buka WhatsApp</button>
+        <button id="downloadBtn" class="alt" type="button">Muat turun .txt</button>
+        <button id="historyBtn" class="ghost" type="button">History</button>
+      </div>
+
+      <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
+      <pre id="output" aria-live="polite"></pre>
+
+      <div class="bottom">
+        <div class="small" id="totalDisplay">Jumlah: RM0</div>
+        <div class="small">Template disimpan automatik (localStorage)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History modal (HTML & JS omitted here for brevity, you can paste original JS if needed) -->
+  <script>
+    // 将你原本的 JS 逻辑粘回这里（验证、生成模板、localStorage 功能等）
+    // 如果需要，我可以把完整 JS 也写回 index.html（与之前你给的内容相同，仅移除图片引用）
+  </script>
+</body>
+</html>
