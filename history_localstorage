@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>编辑器 - 带历史记录 (localStorage)</title>
+<style>
+  :root { --gap:14px; --muted:#666; --bg:#fafafa; --accent:#0366d6; }
+  body { font-family: Arial, Helvetica, sans-serif; margin:20px; background:var(--bg); color:#111; }
+  .container { display:flex; gap:var(--gap); align-items:flex-start; }
+  .pane { background:#fff; padding:16px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+  #editorPane { flex:1; min-width:360px; }
+  #historyPane { width:380px; max-height:80vh; overflow:auto; }
+  #editor { border:1px solid #e0e0e0; min-height:300px; padding:12px; border-radius:6px; background:#fff; }
+  .controls { margin-top:12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .btn { padding:8px 12px; border-radius:6px; border:1px solid #ddd; background:#fff; cursor:pointer; }
+  .btn.primary { background:var(--accent); color:#fff; border-color:transparent; }
+  .small { font-size:12px; color:var(--muted); }
+  .version { border-bottom:1px solid #f0f0f0; padding:10px 0; display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+  .meta { color:var(--muted); font-size:13px; }
+  .version .actions { display:flex; gap:6px; }
+  #previewArea { margin-top:12px; border-top:1px dashed #eee; padding-top:8px; }
+  input[type="text"] { padding:8px; border-radius:6px; border:1px solid #ddd; }
+  textarea.note { width:100%; min-height:56px; padding:8px; border-radius:6px; border:1px solid #ddd; }
+  .status { margin-left:8px; color:var(--muted); font-size:13px; }
+  .danger { background:#fff0f0; border-color:#f5c2c2; color:#a12; }
+  .muted-block { background:#f7f9fb; padding:8px; border-radius:6px; color:var(--muted); }
+</style>
+</head>
+<body>
+  <h1>带本地历史记录的编辑器（localStorage）</h1>
+  <div class="container">
+    <div id="editorPane" class="pane">
+      <h2>编辑器</h2>
+      <div id="editor" contenteditable="true" aria-label="可编辑区域">
+        在这里编辑你的内容……（示例）
+      </div>
+
+      <div class="controls" style="margin-top:10px;">
+        <input id="author" type="text" placeholder="编辑者姓名（可选）" />
+        <button id="saveBtn" class="btn primary">保存版本</button>
+        <button id="autoToggle" class="btn">自动快照：关闭</button>
+        <button id="exportBtn" class="btn">导出历史（JSON）</button>
+        <button id="importBtn" class="btn">导入历史（JSON）</button>
+        <button id="clearBtn" class="btn danger">清空历史</button>
+        <span id="storageInfo" class="status"></span>
+      </div>
+
+      <div style="margin-top:8px;">
+        <label class="small">备注（可选，保存时会提示将该备注写入版本）</label>
+        <textarea id="note" class="note" placeholder="在此处输入本次保存的简短备注（可留空）"></textarea>
+      </div>
+    </div>
+
+    <div id="historyPane" class="pane">
+      <h2>历史记录</h2>
+      <div id="historyList"></div>
+      <div id="previewArea"></div>
+    </div>
+  </div>
+
+  <!-- 隐藏文件输入，用于导入 -->
+  <input id="importFile" type="file" accept="application/json" style="display:none" />
+
+<script>
+(function(){
+  const PAGE_KEY = 'site_edit_history:default_page_v1';
+  const STORAGE_KEY = PAGE_KEY;
+  const MAX_VERSIONS = 500;
+  const AUTO_SNAPSHOT_INTERVAL = 60 * 1000;
+
+  const editor = document.getElementById('editor');
+  const saveBtn = document.getElementById('saveBtn');
+  const historyList = document.getElementById('historyList');
+  const previewArea = document.getElementById('previewArea');
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const importFile = document.getElementById('importFile');
+  const clearBtn = document.getElementById('clearBtn');
+  const authorInput = document.getElementById('author');
+  const noteInput = document.getElementById('note');
+  const autoToggle = document.getElementById('autoToggle');
+  const storageInfo = document.getElementById('storageInfo');
+
+  let autoEnabled = false;
+  let autoTimer = null;
+  let lastSavedHash = null;
+
+  function loadHistory(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) {
+      console.error('解析历史出错', e);
+      return [];
+    }
+  }
+
+  function saveHistory(arr){
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+      updateStorageInfo();
+    } catch(e){
+      alert('保存失败：localStorage 空间不足或被浏览器阻止。');
+      console.error(e);
+    }
+  }
+
+  function updateStorageInfo(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY) || '';
+      const bytes = new Blob([raw]).size;
+      const kb = (bytes/1024).toFixed(1);
+      storageInfo.textContent = `历史占用 ${kb} KB · 共 ${loadHistory().length} 条`;
+    } catch(e){
+      storageInfo.textContent = '';
+    }
+  }
+
+  function renderHistory(){
+    const arr = loadHistory();
+    historyList.innerHTML = '';
+    if(arr.length === 0){
+      historyList.innerHTML = '<p class="small muted-block">暂无历史版本，点击“保存版本”开始记录。</p>';
+      previewArea.innerHTML = '';
+      updateStorageInfo();
+      return;
+    }
+    arr.slice().reverse().forEach((item, idxRev) => {
+      const idx = arr.length - 1 - idxRev;
+      const div = document.createElement('div');
+      div.className = 'version';
+      const left = document.createElement('div');
+      left.style.flex = '1';
+      left.innerHTML = `<div><strong>${escapeHtml(item.author || '匿名')}</strong>
+          <span class="meta"> · ${new Date(item.t).toLocaleString()}</span></div>
+        <div class="meta">${item.note ? escapeHtml(item.note) : '<span class="small">（无备注）</span>'}</div>`;
+      const right = document.createElement('div');
+      right.className = 'actions';
+      right.innerHTML = `<button class="btn" data-action="view" data-idx="${idx}">预览</button>
+                         <button class="btn" data-action="restore" data-idx="${idx}">还原</button>
+                         <button class="btn" data-action="delete" data-idx="${idx}">删除</button>`;
+      div.appendChild(left);
+      div.appendChild(right);
+      historyList.appendChild(div);
+    });
+    updateStorageInfo();
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
+  }
+
+  function saveVersion(manual=true){
+    const content = editor.innerHTML;
+    const author = authorInput.value.trim();
+    const note = noteInput.value.trim();
+    const item = { t: Date.now(), author, content, note };
+
+    const arr = loadHistory();
+    const hash = simpleHash(content + '|' + author + '|' + note);
+    if(hash === lastSavedHash && manual === false) return;
+
+    arr.push(item);
+    if(arr.length > MAX_VERSIONS) arr.splice(0, arr.length - MAX_VERSIONS);
+    saveHistory(arr);
+    lastSavedHash = hash;
+    renderHistory();
+    if(manual) alert('已保存版本（本地设备保存）。');
+  }
+
+  function viewVersion(idx){
+    const arr = loadHistory();
+    const item = arr[idx];
+    if(!item) return;
+    previewArea.innerHTML = `<h3>预览 - ${new Date(item.t).toLocaleString()}</h3>
+      <div class="meta">作者：${escapeHtml(item.author || '匿名')} · 备注：${item.note ? escapeHtml(item.note) : '（无）'}</div>
+      <div style="margin-top:8px;border:1px solid #eee;padding:10px;border-radius:6px;background:#fff">${item.content}</div>`;
+    previewArea.scrollIntoView({behavior:'smooth'});
+  }
+
+  function restoreVersion(idx){
+    const arr = loadHistory();
+    const item = arr[idx];
+    if(!item) return;
+    if(!confirm('确定要将编辑器内容还原到选中的版本吗？（这不会删除历史，除非你手动删除）')) return;
+    editor.innerHTML = item.content;
+    lastSavedHash = simpleHash(item.content + '|' + (item.author||'') + '|' + (item.note||''));
+    alert('已还原到该版本。请点击“保存版本”把还原结果记为新版本（如果需要）。');
+  }
+
+  function deleteVersion(idx){
+    const arr = loadHistory();
+    if(!arr[idx]) return;
+    if(!confirm('确定删除该版本？该操作仅删除本地历史，无法恢复。')) return;
+    arr.splice(idx,1);
+    saveHistory(arr);
+    renderHistory();
+  }
+
+  function exportHistory(){
+    const data = loadHistory();
+    const blob = new Blob([JSON.stringify({ exported_at: Date.now(), data }, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'edit_history_export.json'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // 导入历史（从导出的 JSON 文件）
+  function importHistoryFromFile(file){
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      try {
+        const parsed = JSON.parse(e.target.result);
+        // 支持两种格式：{ data: [...] } 或 [...]
+        const importedArr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.data) ? parsed.data : null);
+        if(!importedArr) throw new Error('无法识别的导出格式');
+        // 询问合并还是替换
+        const doMerge = confirm('点击「确定」合并（merge）导入历史；点击「取消」则替换（replace）本地历史。');
+        let current = loadHistory();
+        let finalArr;
+        if(doMerge){
+          finalArr = mergeAndDedupeHistory(current, importedArr);
+        } else {
+          finalArr = dedupeList(importedArr).slice(0, MAX_VERSIONS);
+        }
+        saveHistory(finalArr);
+        renderHistory();
+        alert('导入完成，已更新本地历史。');
+      } catch(err){
+        console.error(err);
+        alert('导入失败：文件格式不正确或解析出错。');
+      }
+    };
+    reader.onerror = function(){
+      alert('读取文件时出错。');
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+
+  // 合并并去重（保留时间顺序：旧 -> 新；合并后按时间升序）
+  function mergeAndDedupeHistory(a, b){
+    const combined = (a.concat(b || [])).slice(); // 保留所有
+    // 去重并按时间升序
+    const unique = dedupeList(combined);
+    unique.sort((x,y)=> x.t - y.t);
+    // 如果超过 MAX_VERSIONS 保留最新 MAX_VERSIONS
+    if(unique.length > MAX_VERSIONS) return unique.slice(unique.length - MAX_VERSIONS);
+    return unique;
+  }
+
+  function dedupeList(list){
+    const seen = new Set();
+    const out = [];
+    for(const item of list){
+      // 基本校验
+      if(!item || typeof item.content === 'undefined' || typeof item.t === 'undefined') continue;
+      const key = simpleHash((item.author||'') + '|' + item.note + '|' + item.content);
+      if(seen.has(key)) continue;
+      seen.add(key);
+      out.push(item);
+    }
+    return out;
+  }
+
+  function clearHistory(){
+    if(!confirm('确定要清空本地所有历史记录吗？此操作不可逆。')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    renderHistory();
+  }
+
+  // 事件代理（历史操作）
+  historyList.addEventListener('click', function(e){
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const action = btn.dataset.action;
+    const idx = Number(btn.dataset.idx);
+    if(action === 'view') viewVersion(idx);
+    if(action === 'restore') restoreVersion(idx);
+    if(action === 'delete') deleteVersion(idx);
+  });
+
+  saveBtn.addEventListener('click', function(){ saveVersion(true); });
+  exportBtn.addEventListener('click', exportHistory);
+  clearBtn.addEventListener('click', clearHistory);
+
+  // 导入按钮与文件输入
+  importBtn.addEventListener('click', ()=> importFile.click());
+  importFile.addEventListener('change', function(e){
+    const f = this.files && this.files[0];
+    if(f) importHistoryFromFile(f);
+    // 清空以便下次选择同一文件仍会触发 change
+    this.value = '';
+  });
+
+  // 自动快照逻辑
+  function enableAuto(enabled){
+    autoEnabled = enabled;
+    if(autoEnabled){
+      autoToggle.textContent = '自动快照：开启';
+      autoToggle.classList.add('primary');
+      scheduleAuto();
+    } else {
+      autoToggle.textContent = '自动快照：关闭';
+      autoToggle.classList.remove('primary');
+      if(autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+    }
+  }
+
+  function scheduleAuto(){
+    if(autoTimer) clearInterval(autoTimer);
+    autoTimer = setInterval(() => {
+      saveVersion(false);
+    }, AUTO_SNAPSHOT_INTERVAL);
+  }
+
+  autoToggle.addEventListener('click', function(){
+    enableAuto(!autoEnabled);
+  });
+
+  function simpleHash(s){
+    let h = 2166136261 >>> 0;
+    for(let i=0;i<s.length;i++){
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h.toString(16);
+  }
+
+  // 页面离开提示（可选）
+  let preventUnload = true;
+  window.addEventListener('beforeunload', function(e){
+    if(preventUnload){
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  // 初始化
+  renderHistory();
+  updateStorageInfo();
+  (function maybeLoadLatest(){
+    const arr = loadHistory();
+    if(arr.length > 0){
+      const latest = arr[arr.length - 1];
+      lastSavedHash = simpleHash(latest.content + '|' + (latest.author||'') + '|' + (latest.note||''));
+    }
+  })();
+
+})();
+</script>
+</body>
+</html>
