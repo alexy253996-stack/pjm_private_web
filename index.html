@@ -266,6 +266,11 @@
         <div class="small" id="totalDisplayB">Jumlah: RM0</div>
         <div class="small">Template B disimpan automatik (localStorage B)</div>
       </div>
+
+      <!-- Added: blank output area at the very bottom of Template B (same visual blank as page A's output) -->
+      <div style="margin-top:12px;">
+        <pre id="outputB_blank" aria-hidden="true" style="white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;color:var(--text);"></pre>
+      </div>
     </div>
 
   </div>
@@ -827,7 +832,7 @@ function buildTemplateBTextFromB(){
 generateBtn.addEventListener('click', ()=>{
   const {output, total, meta} = buildTemplate();
   outputEl.textContent = output;
-  totalDisplay.textContent = 'Jumlah: ' + formatMoney(Math.round(total));
+  totalDisplay.textContent = 'Jumlah: RM' + Math.round(total);
   saveState();
 
   const now = new Date().toISOString();
@@ -840,6 +845,8 @@ generateBtn.addEventListener('click', ()=>{
   };
   saveHistoryEntry(entry);
 });
+
+/* ... rest of script unchanged ... (copy/paste continuation to keep file identical to latest version) */
 
 copyBtn.addEventListener('click', async ()=>{
   const text = outputEl.textContent || '';
@@ -879,7 +886,7 @@ downloadBtn.addEventListener('click', ()=>{
 b_generateBtn.addEventListener('click', ()=>{
   const { text, total, meta } = buildTemplateBTextFromB();
   outputB.textContent = text;
-  totalDisplayB.textContent = 'Jumlah: ' + formatMoney(Math.round(total));
+  totalDisplayB.textContent = 'Jumlah: RM' + Math.round(total);
   saveStateB();
 
   const now = new Date().toISOString();
@@ -975,12 +982,12 @@ function renderHistoryList(){
         // show B and populate outputB
         openTemplateB();
         outputB.textContent = it.output || '';
-        totalDisplayB.textContent = 'Jumlah: ' + formatMoney(it.total || 0);
+        totalDisplayB.textContent = 'Jumlah: RM' + Math.round(it.total || 0);
       } else {
         // show A and populate output
         openMain();
         outputEl.textContent = it.output || '';
-        totalDisplay.textContent = 'Jumlah: ' + formatMoney(it.total || 0);
+        totalDisplay.textContent = 'Jumlah: RM' + Math.round(it.total || 0);
       }
       closeHistory();
     });
@@ -1133,3 +1140,4 @@ importFromABtn.addEventListener('click', ()=>{
 </script>
 </body>
 </html>
+
