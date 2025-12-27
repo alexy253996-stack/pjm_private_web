@@ -217,16 +217,16 @@
     <div id="templateB" class="hidden" aria-hidden="true">
       <h1>Template B — Contoh Templat Baru</h1>
 
-      <p class="small">Ini adalah ruang untuk templar kedua. Nanti你给我真正的模板内容，我会替换这里的占位内容。</p>
+      <p class="small">Template B 使用主页面的资料生成你提供的格式（公司名单、CS 名称、IC、总金额）。</p>
 
       <div style="margin-top:12px;">
-        <label for="b_title">Tajuk</label>
-        <input id="b_title" class="form-input" type="text" placeholder="Contoh: Permohonan Khas" />
+        <label for="b_title">Tajuk (optional)</label>
+        <input id="b_title" class="form-input" type="text" placeholder="Contoh: Permohonan Khas (tidak perlu)" />
       </div>
 
       <div style="margin-top:12px;">
-        <label for="b_note">Nota / Keterangan</label>
-        <textarea id="b_note" class="form-input" style="min-height:120px" placeholder="Masukkan kandungan templar..."></textarea>
+        <label for="b_note">Nota tambahan (optional)</label>
+        <textarea id="b_note" class="form-input" style="min-height:120px" placeholder="Boleh tambahkan nota di sini jika perlu..."></textarea>
       </div>
 
       <div class="controls" style="margin-top:10px;">
@@ -239,7 +239,7 @@
       <pre id="outputB" aria-live="polite"></pre>
 
       <div class="bottom" style="margin-top:12px;">
-        <div class="small">Template B juga可储存在 history</div>
+        <div class="small">Template B 也会储存在 history</div>
       </div>
     </div>
 
@@ -796,17 +796,49 @@ b_backBtn.addEventListener('click', ()=>{
 });
 
 b_generateBtn.addEventListener('click', ()=>{
-  // 这里把 Template B 的内容组合到 outputB，并保存历史，标记为 template 'B'
-  const title = (b_title.value || 'Template B').trim();
-  const note = (b_note.value || '').trim();
-  const output = `---- ${title} ----\n\n${note}\n\n(Ini adalah contoh Template B. Gantikan dengan konten sebenar yang anda mahu.)`;
+  // 使用主页面当前字段构建 Template B（按照用户提供的文本格式）
+  const name = (nameEl.value || '[NAME]').trim();
+  const companyEls = Array.from(companyListEl.querySelectorAll('.company-item'));
+  let companyNames = [];
+  let total = 0;
+  companyEls.forEach((el)=>{
+    const nameVal = el.querySelector('.labelInput').value.trim();
+    const amountVal = el.querySelector('.amountInput').value.trim();
+    const deleted = el.querySelector('.delCheckbox').checked;
+    if (deleted) return;
+    // 列表仅包含公司名称（与用户提供的模板一致）
+    companyNames.push(nameVal || '(Syarikat)');
+    const num = numberFromInput(amountVal);
+    if (!isNaN(num)) total += num;
+  });
+  const detailList = companyNames.length ? companyNames.map(n=>n).join('\n') : '(Tiada bayaran ditetapkan)';
+  const csName = (recipientEl.value || '').trim();
+  const csIc = (icEl.value || '').trim();
+  const totalRounded = Math.round(total);
+
+  // 用户提供的模板文本（已将占位符替换）
+  const output = `📞Hi Boss, Saya ${name} dari Syarikat STAGSMUTUAL（P.C 601）
+
+*DETAIL BAYARAN:*  
+${detailList}
+
+👤 NAMA: ${csName}
+🆔 IC: ${csIc}
+💳 JUMLAH: *RM${isNaN(totalRounded) ? '0' : totalRounded}*
+
+⚠️HARI INI SILA BAYAR *SEBELUM 3:00 PETANG* UNTUK AVOID CAJ
+
+⚠️SEBELUM 5MIN TRANSFER *MINTA ACC DARIPADA SAYA DAN IKUT SOP*
+
+TERIMA KASIH🙏`;
+
   outputB.textContent = output;
 
   const now = new Date().toISOString();
   const entry = {
     output,
-    total: 0,
-    meta: { title },
+    total: totalRounded,
+    meta: { title: b_title.value || null },
     saved_at: now,
     template: 'B'
   };
