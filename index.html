@@ -262,14 +262,15 @@
       <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
       <pre id="outputB" aria-live="polite"></pre>
 
-      <div class="bottom" style="margin-top:12px;">
-        <div class="small" id="totalDisplayB">Jumlah: RM0</div>
-        <div class="small">Template B disimpan automatik (localStorage B)</div>
-      </div>
-
       <!-- Added: blank output area at the very bottom of Template B (same visual blank as page A's output) -->
       <div style="margin-top:12px;">
         <pre id="outputB_blank" aria-hidden="true" style="white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;color:var(--text);"></pre>
+      </div>
+
+      <!-- Moved: Jumlah and localStorage note for Template B placed BELOW the blank area as requested -->
+      <div class="bottom" style="margin-top:12px;">
+        <div class="small" id="totalDisplayB">Jumlah: RM0</div>
+        <div class="small">Template B disimpan automatik (localStorage B)</div>
       </div>
     </div>
 
@@ -846,7 +847,7 @@ generateBtn.addEventListener('click', ()=>{
   saveHistoryEntry(entry);
 });
 
-/* ... rest of script unchanged ... (copy/paste continuation to keep file identical to latest version) */
+/* ... rest of script unchanged ... (keeps latest behavior identical) */
 
 copyBtn.addEventListener('click', async ()=>{
   const text = outputEl.textContent || '';
