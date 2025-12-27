@@ -485,7 +485,7 @@ async function handlePassword() {
   const input = passwordInput.value || '';
   try {
     const h = await sha256Hex(input);
-    if (input === '601601' || h === PASSWORD_HASH_HEX) {
+    if (input === '112233' || h === PASSWORD_HASH_HEX) {
       passwordScreen.classList.add('hidden');
       mainApp.classList.remove('hidden');
       mainApp.setAttribute('aria-hidden', 'false');
