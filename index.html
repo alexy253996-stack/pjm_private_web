@@ -199,6 +199,9 @@
         <button id="waBtn" class="alt" type="button">Buka WhatsApp</button>
         <button id="downloadBtn" class="alt" type="button">Muat turun .txt</button>
         <button id="historyBtn" class="ghost" type="button">History</button>
+
+        <!-- 新增：打开另一个模版的按钮（右侧模版） -->
+        <button id="openTemplateBBtn" class="alt" type="button" title="Buka mod templat lain">Buka Templat Lain →</button>
       </div>
 
       <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
@@ -209,6 +212,37 @@
         <div class="small">Template disimpan automatik (localStorage)</div>
       </div>
     </div>
+
+    <!-- 新增的第二个模版视图（Template B），初始隐藏 -->
+    <div id="templateB" class="hidden" aria-hidden="true">
+      <h1>Template B — Contoh Templat Baru</h1>
+
+      <p class="small">Ini adalah ruang untuk templar kedua. Nanti你给我真正的模板内容，我会替换这里的占位内容。</p>
+
+      <div style="margin-top:12px;">
+        <label for="b_title">Tajuk</label>
+        <input id="b_title" class="form-input" type="text" placeholder="Contoh: Permohonan Khas" />
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="b_note">Nota / Keterangan</label>
+        <textarea id="b_note" class="form-input" style="min-height:120px" placeholder="Masukkan kandungan templar..."></textarea>
+      </div>
+
+      <div class="controls" style="margin-top:10px;">
+        <button id="b_generateBtn" type="button">Generate Template B</button>
+        <button id="b_copyBtn" class="alt" type="button">Salin</button>
+        <button id="b_backBtn" class="ghost" type="button">← Kembali</button>
+      </div>
+
+      <h2 style="margin-top:12px;color:var(--text);">Output (Template B):</h2>
+      <pre id="outputB" aria-live="polite"></pre>
+
+      <div class="bottom" style="margin-top:12px;">
+        <div class="small">Template B juga可储存在 history</div>
+      </div>
+    </div>
+
   </div>
 
   <!-- History modal -->
@@ -258,6 +292,16 @@ const historyBtn = document.getElementById('historyBtn');
 
 const outputEl = document.getElementById('output');
 const totalDisplay = document.getElementById('totalDisplay');
+
+/* Template B elements */
+const openTemplateBBtn = document.getElementById('openTemplateBBtn');
+const templateB = document.getElementById('templateB');
+const b_title = document.getElementById('b_title');
+const b_note = document.getElementById('b_note');
+const b_generateBtn = document.getElementById('b_generateBtn');
+const b_copyBtn = document.getElementById('b_copyBtn');
+const b_backBtn = document.getElementById('b_backBtn');
+const outputB = document.getElementById('outputB');
 
 /* History modal elements */
 const historyModal = document.getElementById('historyModal');
@@ -485,7 +529,7 @@ async function handlePassword() {
   const input = passwordInput.value || '';
   try {
     const h = await sha256Hex(input);
-    if (input === '112233' || h === PASSWORD_HASH_HEX) {
+    if (input === '601601' || h === PASSWORD_HASH_HEX) {
       passwordScreen.classList.add('hidden');
       mainApp.classList.remove('hidden');
       mainApp.setAttribute('aria-hidden', 'false');
@@ -572,7 +616,8 @@ generateBtn.addEventListener('click', ()=>{
     output,
     total: Math.round(total),
     meta,
-    saved_at: now
+    saved_at: now,
+    template: 'A' // 标记是模板A
   };
   saveHistoryEntry(entry);
 });
@@ -643,7 +688,7 @@ function renderHistoryList(){
     title.innerText = summary.length > 80 ? summary.slice(0,77) + '...' : summary;
     const sub = document.createElement('div');
     sub.className = 'tiny';
-    sub.innerText = `${fmtTime(it.saved_at)} — Jumlah: RM${it.total || 0}`;
+    sub.innerText = `${fmtTime(it.saved_at)} — Jumlah: RM${it.total || 0} — Templat: ${it.template || 'A'}`;
     meta.appendChild(title);
     meta.appendChild(sub);
 
@@ -732,6 +777,53 @@ resetCompaniesBtn.addEventListener('click', () => {
 /* Save on change for live fields */
 [nameEl, recipientEl, icEl].forEach(el=>el.addEventListener('input', saveState));
 companyListEl.addEventListener('input', saveState);
+
+/* Template B: open / back / generate / copy */
+openTemplateBBtn.addEventListener('click', ()=>{
+  // 切换视图：隐藏主应用，显示 Template B
+  mainApp.classList.add('hidden');
+  mainApp.setAttribute('aria-hidden','true');
+  templateB.classList.remove('hidden');
+  templateB.setAttribute('aria-hidden','false');
+});
+
+b_backBtn.addEventListener('click', ()=>{
+  // 返回主应用
+  templateB.classList.add('hidden');
+  templateB.setAttribute('aria-hidden','true');
+  mainApp.classList.remove('hidden');
+  mainApp.setAttribute('aria-hidden','false');
+});
+
+b_generateBtn.addEventListener('click', ()=>{
+  // 这里把 Template B 的内容组合到 outputB，并保存历史，标记为 template 'B'
+  const title = (b_title.value || 'Template B').trim();
+  const note = (b_note.value || '').trim();
+  const output = `---- ${title} ----\n\n${note}\n\n(Ini adalah contoh Template B. Gantikan dengan konten sebenar yang anda mahu.)`;
+  outputB.textContent = output;
+
+  const now = new Date().toISOString();
+  const entry = {
+    output,
+    total: 0,
+    meta: { title },
+    saved_at: now,
+    template: 'B'
+  };
+  saveHistoryEntry(entry);
+});
+
+b_copyBtn.addEventListener('click', async ()=>{
+  const text = outputB.textContent || '';
+  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
+  try {
+    await navigator.clipboard.writeText(text);
+    alert('Template B telah disalin ke clipboard!');
+  } catch(e) {
+    console.error(e);
+    alert('Gagal salin — cuba guna penyemak imbas yang menyokong clipboard API.');
+  }
+});
 
 // NOTE: We do not call renderDefaultCompanies() here to avoid double-rendering.
 // The UI is rendered after successful password entry (handlePassword).
