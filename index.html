@@ -770,7 +770,8 @@ Terima kasih atas kerjasama Boss! 🙏`;
 
 /* Build template B based on B form (only include companies with amounts) 
    Updated per request: first line -> "📞Hi Boss, Saya [NAME] dari Syarikat STAGSMUTUAL（P.C 601）"
-   Removed the long SOP block; instead we place the two warning lines directly under *DETAIL BAYARAN:*.
+   Move 👤 NAMA / 🆔 IC / 💳 JUMLAH to immediately after *DETAIL BAYARAN:*
+   Keep the two warning lines below those, and everything else unchanged.
 */
 function buildTemplateBTextFromB(){
   const name = (b_name.value || '[NAME]').trim();
@@ -806,16 +807,16 @@ function buildTemplateBTextFromB(){
     lines.push(`(Tiada bayaran ditetapkan)`);
   }
 
-  // The two warning lines placed directly below *DETAIL BAYARAN:*
+  // Move recipient/ic/total directly under DETAIL BAYARAN
   lines.push('');
-  lines.push(`⚠️HARI INI SILA BAYAR *SEBELUM 3:00 PETANG* UNTUK AVOID CAJ`);
-  lines.push('');
-  lines.push(`⚠️SEBELUM 5MIN TRANSFER *MINTA ACC DARIPADA SAYA DAN IKUT SOP*`);
-  lines.push('');
-  // Recipient / IC / Total
   lines.push(`👤 NAMA: ${recipient}`);
   lines.push(`🆔 IC: ${ic}`);
   lines.push(`💳 JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*`);
+  lines.push('');
+  // The two warning lines placed below recipient/IC/total
+  lines.push(`⚠️HARI INI SILA BAYAR *SEBELUM 3:00 PETANG* UNTUK AVOID CAJ`);
+  lines.push('');
+  lines.push(`⚠️SEBELUM 5MIN TRANSFER *MINTA ACC DARIPADA SAYA DAN IKUT SOP*`);
   lines.push('');
   lines.push(`TERIMA KASIH🙏`);
 
