@@ -260,14 +260,15 @@
       </div>
 
       <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
+      <!-- keep the small preview area above blank (but we will not place final text here) -->
       <pre id="outputB" aria-live="polite"></pre>
 
-      <!-- Added: blank output area at the very bottom of Template B (same visual blank as page A's output) -->
+      <!-- The blank area where final generated template should appear (user requested) -->
       <div style="margin-top:12px;">
-        <pre id="outputB_blank" aria-hidden="true" style="white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;color:var(--text);"></pre>
+        <pre id="outputB_blank" aria-hidden="false" style="white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;color:var(--text);"></pre>
       </div>
 
-      <!-- Moved: Jumlah and localStorage note for Template B placed BELOW the blank area as requested -->
+      <!-- Jumlah and note are placed BELOW the blank area per latest layout -->
       <div class="bottom" style="margin-top:12px;">
         <div class="small" id="totalDisplayB">Jumlah: RM0</div>
         <div class="small">Template B disimpan automatik (localStorage B)</div>
@@ -343,6 +344,7 @@ const b_historyBtn = document.getElementById('b_historyBtn');
 const b_backBtn = document.getElementById('b_backBtn');
 
 const outputB = document.getElementById('outputB');
+const outputB_blank = document.getElementById('outputB_blank'); // blank area
 const totalDisplayB = document.getElementById('totalDisplayB');
 
 /* History modal elements */
@@ -774,11 +776,7 @@ Terima kasih atas kerjasama Boss! 🙏`;
   return {output, total, meta:{recipient: recipient || null, ic: ic || null}};
 }
 
-/* Build template B based on B form (only include companies with amounts) 
-   Updated per request: first line -> "📞Hi Boss, Saya [NAME] dari Syarikat STAGSMUTUAL（P.C 601）"
-   Move 👤 NAMA / 🆔 IC / 💳 JUMLAH to immediately after *DETAIL BAYARAN:*
-   Keep the two warning lines below those, and everything else unchanged.
-*/
+/* Build template B (final text goes into outputB_blank) */
 function buildTemplateBTextFromB(){
   const name = (b_name.value || '[NAME]').trim();
   const companyEls = Array.from(b_companyList.querySelectorAll('.company-item-b'));
@@ -789,7 +787,7 @@ function buildTemplateBTextFromB(){
     if (deleted) return;
     const cname = (el.querySelector('.labelInputB').value || '').trim();
     const camtRaw = (el.querySelector('.amountInputB').value || '').trim();
-    if (!camtRaw) return; // If no amount, skip the company (matching page A behavior)
+    if (!camtRaw) return; // If no amount, skip the company
     const num = numberFromInput(camtRaw);
     if (!isNaN(num)) total += num;
     included.push({ name: cname || 'Syarikat', amountRaw: camtRaw });
@@ -799,10 +797,9 @@ function buildTemplateBTextFromB(){
   const ic = (b_ic.value || '').trim();
 
   const lines = [];
-  // First line: user requested format with phone icon and P.C 601
+  // First line: requested format
   lines.push(`📞Hi Boss, Saya ${name} dari Syarikat STAGSMUTUAL（P.C 601）`);
   lines.push('');
-  // DETAIL BAYARAN header
   lines.push(`*DETAIL BAYARAN:*  `);
 
   if (included.length) {
@@ -813,13 +810,13 @@ function buildTemplateBTextFromB(){
     lines.push(`(Tiada bayaran ditetapkan)`);
   }
 
-  // Move recipient/ic/total directly under DETAIL BAYARAN
+  // Recipient/IC/Total directly under DETAIL BAYARAN
   lines.push('');
   lines.push(`👤 NAMA: ${recipient}`);
   lines.push(`🆔 IC: ${ic}`);
   lines.push(`💳 JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*`);
   lines.push('');
-  // The two warning lines placed below recipient/IC/total
+  // Warning lines placed below
   lines.push(`⚠️HARI INI SILA BAYAR *SEBELUM 3:00 PETANG* UNTUK AVOID CAJ`);
   lines.push('');
   lines.push(`⚠️SEBELUM 5MIN TRANSFER *MINTA ACC DARIPADA SAYA DAN IKUT SOP*`);
@@ -846,8 +843,6 @@ generateBtn.addEventListener('click', ()=>{
   };
   saveHistoryEntry(entry);
 });
-
-/* ... rest of script unchanged ... (keeps latest behavior identical) */
 
 copyBtn.addEventListener('click', async ()=>{
   const text = outputEl.textContent || '';
@@ -883,13 +878,25 @@ downloadBtn.addEventListener('click', ()=>{
   URL.revokeObjectURL(url);
 });
 
-/* Buttons - B */
+/* Buttons - B
+   Adjusted so B's copy/wa/download operate on the blank area (outputB_blank),
+   while leaving other code/structure as in the latest version.
+*/
 b_generateBtn.addEventListener('click', ()=>{
   const { text, total, meta } = buildTemplateBTextFromB();
-  outputB.textContent = text;
-  totalDisplayB.textContent = 'Jumlah: RM' + Math.round(total);
-  saveStateB();
 
+  // Put final text into the blank area (user requested)
+  if (outputB_blank) {
+    outputB_blank.textContent = text;
+  }
+  // Clear the small preview above (so final text appears only in blank)
+  if (outputB) outputB.textContent = '';
+
+  // Update total display below blank
+  totalDisplayB.textContent = 'Jumlah: RM' + Math.round(total);
+
+  // Save B state and history as before
+  saveStateB();
   const now = new Date().toISOString();
   const entry = {
     output: text,
@@ -902,7 +909,8 @@ b_generateBtn.addEventListener('click', ()=>{
 });
 
 b_copyBtn.addEventListener('click', async ()=>{
-  const text = outputB.textContent || '';
+  // Read text from blank area
+  const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   try {
     await navigator.clipboard.writeText(text);
@@ -914,7 +922,7 @@ b_copyBtn.addEventListener('click', async ()=>{
 });
 
 b_waBtn.addEventListener('click', ()=>{
-  const text = outputB.textContent || '';
+  const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   const encoded = encodeURIComponent(text);
   const url = `https://wa.me/?text=${encoded}`;
@@ -922,7 +930,7 @@ b_waBtn.addEventListener('click', ()=>{
 });
 
 b_downloadBtn.addEventListener('click', ()=>{
-  const text = outputB.textContent || '';
+  const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
   const url = URL.createObjectURL(blob);
@@ -978,14 +986,12 @@ function renderHistoryList(){
     viewBtn.className = 'ghost';
     viewBtn.innerText = 'View';
     viewBtn.addEventListener('click', ()=>{
-      // View on the appropriate template panel
       if (it.template === 'B') {
-        // show B and populate outputB
         openTemplateB();
-        outputB.textContent = it.output || '';
+        // show the historical content in the blank area (because final output is there)
+        if (outputB_blank) outputB_blank.textContent = it.output || '';
         totalDisplayB.textContent = 'Jumlah: RM' + Math.round(it.total || 0);
       } else {
-        // show A and populate output
         openMain();
         outputEl.textContent = it.output || '';
         totalDisplay.textContent = 'Jumlah: RM' + Math.round(it.total || 0);
@@ -1054,13 +1060,10 @@ addCompanyBtn.addEventListener('click', () => {
 
 resetCompaniesBtn.addEventListener('click', () => {
   if (!confirm('Reset semua baris ke nilai awal?')) return;
-  // remove saved state and re-render default rows
   localStorage.removeItem(LS_KEY);
   renderDefaultCompanies();
   saveState();
 });
-/* ---------------------------------------------------------- */
-
 /* ------------ Add / Reset buttons functionality (B) ------------ */
 b_addCompanyBtn.addEventListener('click', () => {
   b_companyList.appendChild(createCompanyRowB({ name: '', amount: '' }));
@@ -1073,8 +1076,6 @@ b_resetCompaniesBtn.addEventListener('click', () => {
   renderDefaultCompaniesB();
   saveStateB();
 });
-/* ---------------------------------------------------------- */
-
 /* Save on change for live fields */
 [nameEl, recipientEl, icEl].forEach(el=>el.addEventListener('input', saveState));
 companyListEl.addEventListener('input', saveState);
@@ -1098,7 +1099,6 @@ function openMain(){
 }
 
 openTemplateBBtn.addEventListener('click', ()=>{
-  // show B and ensure it has current saved or default content
   renderDefaultCompaniesB();
   restoreFieldsB();
   openTemplateB();
@@ -1108,23 +1108,20 @@ b_backBtn.addEventListener('click', ()=>{
   openMain();
 });
 
-/* Import A -> B (copy values from A into B editable fields) */
+/* Import A -> B */
 importFromABtn.addEventListener('click', ()=>{
-  // copy name, recipient, ic
   b_name.value = nameEl.value || '';
   b_recipient.value = recipientEl.value || '';
   b_ic.value = icEl.value || '';
 
-  // copy company rows
   b_companyList.innerHTML = '';
   const companyEls = Array.from(companyListEl.querySelectorAll('.company-item'));
   companyEls.forEach((el)=>{
-    const deleted = el.querySelector('.delCheckbox').checked;
     const cname = el.querySelector('.labelInput').value || '';
     const camt = el.querySelector('.amountInput').value || '';
+    const deleted = el.querySelector('.delCheckbox').checked;
     b_companyList.appendChild(createCompanyRowB({ name: cname, amount: camt, deleted }));
   });
-  // pad to 7 if fewer
   const current = b_companyList.querySelectorAll('.company-item-b').length;
   for (let i = current; i < 7; i++){
     b_companyList.appendChild(createCompanyRowB({ name:'', amount:'' }));
@@ -1133,11 +1130,7 @@ importFromABtn.addEventListener('click', ()=>{
   alert('Data berjaya diimport dari Halaman A ke Halaman B.');
 });
 
-/* Initialize notes:
-   - UI becomes visible after correct password entry (handlePassword).
-   - renderDefaultCompanies() and renderDefaultCompaniesB() are called on successful login.
-*/
-
+/* End of script */
 </script>
 </body>
 </html>
