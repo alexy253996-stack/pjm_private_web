@@ -1,29 +1,165 @@
 <!doctype html>
-<html lang="zh-Hans">
+<html lang="ms">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pinjaman Template Generator</title>
   <style>
-    :root{--primary:#1e90ff;--bg:#000;--card:#0f0f12;--text:#e8eef8;--sub:#b9c6d9;--maxw:900px}
-    html,body{height:100%}body{font-family:Inter,Arial,sans-serif;background:var(--bg);margin:0;padding:24px;display:flex;justify-content:center;color:var(--text)}
-    .container{width:100%;max-width:var(--maxw);background:var(--card);padding:20px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03)}
-    h1{text-align:center;margin:6px 0 18px;font-size:1.4rem;color:var(--text)}.hidden{display:none}
-    label{display:block;font-weight:700;margin-bottom:6px;color:var(--sub)}
-    .form-input{width:100%;padding:10px;font-size:15px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;box-sizing:border-box;color:var(--text);background:#111214;outline:none}
-    .form-input::placeholder{color:#999}.top-row{display:flex;gap:12px;align-items:center;margin-bottom:12px}.top-row>*{flex:1}
-    button{padding:10px 14px;border:0;border-radius:6px;background:var(--primary);color:#fff;cursor:pointer;font-weight:600}
-    button.alt{background:transparent;color:var(--sub);border:1px solid rgba(255,255,255,0.04)}
-    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--sub)}
-    .company-list{margin:12px 0 18px}.company-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-    #output{white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;margin-top:12px;color:var(--text)}
-    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.bottom{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:12px;flex-wrap:wrap;color:var(--sub)}
+    :root {
+      --primary:#1e90ff;
+      --primary-dark:#1473d6;
+      --bg:#000000;
+      --card:#0f0f12;
+      --muted:#999;
+      --text:#e8eef8;
+      --sub:#b9c6d9;
+      --border:#222;
+      --maxw:900px;
+    }
+
+    html,body { height:100%; }
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background: var(--bg);
+      margin: 0;
+      padding: 24px;
+      display:flex;
+      justify-content:center;
+      color:var(--text);
+    }
+    .container {
+      width:100%;
+      max-width:var(--maxw);
+      background:var(--card);
+      padding:20px;
+      border-radius:8px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    h1 { text-align:center; margin:6px 0 18px; font-size:1.4rem; color:var(--text); }
+    .hidden { display:none; }
+    label { display:block; font-weight:700; margin-bottom:6px; color:var(--sub); }
+    .form-input {
+      width:100%;
+      padding:10px;
+      font-size:15px;
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:6px;
+      box-sizing:border-box;
+      color:var(--text);
+      background:#111214;
+      outline: none;
+    }
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(30,144,255,0.06);
+      background:#0d1113;
+    }
+    .form-input::placeholder { color:var(--muted); }
+    .top-row { display:flex; gap:12px; align-items:center; margin-bottom:12px; }
+    .top-row > * { flex:1; }
+    button {
+      padding:10px 14px;
+      border:0;
+      border-radius:6px;
+      background:var(--primary);
+      color:#fff;
+      cursor:pointer;
+      font-weight:600;
+      box-shadow: 0 4px 10px rgba(30,144,255,0.12);
+    }
+    button.alt {
+      background:transparent;
+      color:var(--sub);
+      border:1px solid rgba(255,255,255,0.04);
+    }
+    button.ghost {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.04);
+      color: var(--sub);
+    }
+    button:active { transform:translateY(1px); }
+    .company-list { margin:12px 0 18px; }
+    .company-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .company-row input[type="text"] { flex:1; background:#111214; color:var(--text); border:1px solid rgba(255,255,255,0.04); }
+    .company-row .label { width:200px; min-width:120px; font-weight:600; color:var(--sub); }
+    .small { font-size:13px; color:var(--sub); }
+    #output {
+      white-space:pre-wrap;
+      background:#061018;
+      border:1px solid rgba(255,255,255,0.03);
+      padding:14px;
+      border-radius:6px;
+      min-height:140px;
+      margin-top:12px;
+      color:var(--text);
+    }
+    .controls { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .bottom { display:flex; justify-content:space-between; align-items:center; margin-top:16px; gap:12px; flex-wrap:wrap; color:var(--sub); }
+
+    /* password-art */
+    .password-art{
+      display: block;
+      margin: 0 auto 12px;
+      max-width: 220px;
+      width: 36%;
+      height: auto;
+      object-fit: contain;
+      border-radius: 12px;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.6));
+      background: rgba(255,255,255,0.02);
+    }
+    @media (min-width:800px){
+      .password-art { max-width: 260px; width: 220px; }
+    }
+
+    /* History modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1200;
+    }
+    .modal {
+      width: 92%;
+      max-width: 920px;
+      max-height: 80vh;
+      overflow: auto;
+      background: #0b0b0d;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+      color: var(--text);
+    }
+    .hist-list { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+    .hist-item {
+      display:flex;
+      gap:8px;
+      align-items:center;
+      padding:10px;
+      background: rgba(255,255,255,0.01);
+      border-radius:6px;
+      border: 1px solid rgba(255,255,255,0.02);
+    }
+    .hist-meta { flex:1; color:var(--sub); font-size:13px; }
+    .hist-actions { display:flex; gap:6px; }
+    .tiny { font-size:12px; color:var(--muted); }
+
+    @media (max-width:640px){ .company-row { flex-direction:column; align-items:stretch; } .company-row .label{width:auto} }
   </style>
 </head>
 <body>
   <div class="container">
     <div id="passwordScreen">
       <h1>Pinjaman Template Generator</h1>
+
+      <!-- 插入的图片（请确保 images/rabbit.png 已放在项目 images 目录） -->
+      <img src="images/rabbit.png" alt="rabbit" class="password-art" />
+
       <p class="small">Masukkan kata laluan untuk akses:</p>
       <div class="top-row">
         <input id="passwordInput" type="password" inputmode="text" aria-label="kata laluan" placeholder="Kata Laluan" class="form-input" />
@@ -78,10 +214,530 @@
     </div>
   </div>
 
-  <!-- History modal (HTML & JS omitted here for brevity, you can paste original JS if needed) -->
-  <script>
-    // 将你原本的 JS 逻辑粘回这里（验证、生成模板、localStorage 功能等）
-    // 如果需要，我可以把完整 JS 也写回 index.html（与之前你给的内容相同，仅移除图片引用）
-  </script>
+  <!-- History modal -->
+  <div id="historyModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal" role="document" aria-labelledby="historyTitle">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 id="historyTitle" style="margin:0;color:var(--text)">Sejarah (terakhir 30)</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="exportHistoryBtn" class="alt">Export JSON</button>
+          <button id="clearHistoryBtn" class="alt">Clear All</button>
+          <button id="closeHistoryBtn" class="ghost">Close</button>
+        </div>
+      </div>
+      <div id="histList" class="hist-list" style="margin-top:12px;"></div>
+      <div id="histEmpty" class="tiny" style="margin-top:8px;color:var(--muted); display:none;">Tiada sejarah.</div>
+    </div>
+  </div>
+
+<script>
+/* 保存历史到本设备 localStorage（按 device id 隔离） */
+
+const PASSWORD_HASH_HEX = "8d969eef6ecad3c29a3a629280e686cff8fabf5f0a5b4a3f0f1e3a6f7c4d7d1";
+const HISTORY_KEY_BASE = 'pjm_web_change_history_v1';
+const HISTORY_LIMIT = 30;
+const DEVICE_ID_KEY = 'pjm_device_id_v1';
+
+/* DOM */
+const passwordInput = document.getElementById('passwordInput');
+const passwordBtn = document.getElementById('passwordBtn');
+const errorMsg = document.getElementById('errorMsg');
+const passwordScreen = document.getElementById('passwordScreen');
+const mainApp = document.getElementById('mainApp');
+
+const companyListEl = document.getElementById('companyList');
+const addCompanyBtn = document.getElementById('addCompanyBtn');
+const resetCompaniesBtn = document.getElementById('resetCompaniesBtn');
+
+const nameEl = document.getElementById('name');
+const recipientEl = document.getElementById('recipient');
+const icEl = document.getElementById('ic');
+
+const generateBtn = document.getElementById('generateBtn');
+const copyBtn = document.getElementById('copyBtn');
+const waBtn = document.getElementById('waBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const historyBtn = document.getElementById('historyBtn');
+
+const outputEl = document.getElementById('output');
+const totalDisplay = document.getElementById('totalDisplay');
+
+/* History modal elements */
+const historyModal = document.getElementById('historyModal');
+const histListEl = document.getElementById('histList');
+const histEmptyEl = document.getElementById('histEmpty');
+const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+const exportHistoryBtn = document.getElementById('exportHistoryBtn');
+
+/* Helpers */
+function hexFromBuffer(buf){
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function sha256Hex(text){
+  const enc = new TextEncoder();
+  const data = enc.encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return hexFromBuffer(hash);
+}
+function numberFromInput(s){
+  if (!s) return NaN;
+  const cleaned = s.toString().replace(/[^\d.\-]/g,'').trim();
+  if (cleaned === '') return NaN;
+  return parseFloat(cleaned);
+}
+function formatMoney(n){
+  if (isNaN(n)) return 'RM0';
+  return 'RM' + n.toLocaleString('en-US', {maximumFractionDigits:0});
+}
+function fmtTime(iso){
+  try { return new Date(iso).toLocaleString(); } catch(e) { return iso; }
+}
+function sanitizeData(value){
+  if (value === null || value === undefined) return undefined;
+  if (Array.isArray(value)) {
+    const arr = value.map(v => sanitizeData(v)).filter(v => v !== undefined);
+    return arr.length ? arr : undefined;
+  }
+  if (typeof value === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) {
+      const sv = sanitizeData(v);
+      if (sv === undefined) continue;
+      out[k] = sv;
+    }
+    return Object.keys(out).length ? out : undefined;
+  }
+  if (typeof value === 'string') {
+    return value.trim() === '' ? undefined : value;
+  }
+  return value;
+}
+
+/* existing state persistence */
+const LS_KEY = 'pjm_web_change_v1';
+function saveState(){
+  const companies = Array.from(companyListEl.querySelectorAll('.company-item')).map(el=>({
+    name: el.querySelector('.labelInput').value,
+    amount: el.querySelector('.amountInput').value,
+    deleted: el.querySelector('.delCheckbox').checked
+  }));
+  const state = {
+    name: nameEl.value,
+    recipient: recipientEl.value,
+    ic: icEl.value,
+    companies
+  };
+  const clean = sanitizeData(state) || {};
+  localStorage.setItem(LS_KEY, JSON.stringify(clean));
+}
+function loadState(){
+  const raw = localStorage.getItem(LS_KEY);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch(e){ return null; }
+}
+
+/* device id & history key */
+function generateDeviceId(){
+  const buf = new Uint8Array(16);
+  crypto.getRandomValues(buf);
+  buf[6] = (buf[6] & 0x0f) | 0x40;
+  buf[8] = (buf[8] & 0x3f) | 0x80;
+  const toHex = (b)=>b.toString(16).padStart(2,'0');
+  const parts = [
+    Array.from(buf.slice(0,4)).map(toHex).join(''),
+    Array.from(buf.slice(4,6)).map(toHex).join(''),
+    Array.from(buf.slice(6,8)).map(toHex).join(''),
+    Array.from(buf.slice(8,10)).map(toHex).join(''),
+    Array.from(buf.slice(10,16)).map(toHex).join('')
+  ];
+  return parts.join('-');
+}
+function getDeviceId(){
+  try {
+    let id = localStorage.getItem(DEVICE_ID_KEY);
+    if (!id) {
+      id = generateDeviceId();
+      localStorage.setItem(DEVICE_ID_KEY, id);
+    }
+    return id;
+  } catch(e){
+    return generateDeviceId();
+  }
+}
+function getHistoryKey(){
+  const deviceId = getDeviceId();
+  return `${HISTORY_KEY_BASE}::${deviceId}`;
+}
+
+/* history persistence (per-device) */
+function loadHistory(){
+  const raw = localStorage.getItem(getHistoryKey());
+  if (!raw) return [];
+  try { return JSON.parse(raw); } catch(e){ return []; }
+}
+function saveHistoryEntry(entry){
+  const key = getHistoryKey();
+  const arr = loadHistory();
+  arr.unshift(entry);
+  if (arr.length > HISTORY_LIMIT) arr.splice(HISTORY_LIMIT);
+  localStorage.setItem(key, JSON.stringify(arr));
+}
+function deleteHistoryAt(i){
+  const key = getHistoryKey();
+  const arr = loadHistory();
+  if (i < 0 || i >= arr.length) return;
+  arr.splice(i,1);
+  localStorage.setItem(key, JSON.stringify(arr));
+}
+function clearHistory(){
+  localStorage.removeItem(getHistoryKey());
+}
+
+/* company rows management */
+function createCompanyRow(data){
+  const wrapper = document.createElement('div');
+  wrapper.className = 'company-row company-item';
+  wrapper.style.alignItems = 'center';
+
+  const labelInput = document.createElement('input');
+  labelInput.type = 'text';
+  labelInput.value = data?.name || '';
+  labelInput.placeholder = 'Syarikat / Keterangan';
+  labelInput.className = 'labelInput form-input';
+  labelInput.style.minWidth = '120px';
+  labelInput.setAttribute('aria-label','nama syarikat');
+
+  const amountInput = document.createElement('input');
+  amountInput.type = 'text';
+  amountInput.value = data?.amount || '';
+  amountInput.placeholder = 'Contoh: 1400';
+  amountInput.className = 'amountInput form-input';
+  amountInput.setAttribute('inputmode','numeric');
+  amountInput.setAttribute('aria-label','amaun');
+
+  const delLabel = document.createElement('label');
+  delLabel.style.display='flex';
+  delLabel.style.alignItems='center';
+  delLabel.style.gap='6px';
+
+  const delCheckbox = document.createElement('input');
+  delCheckbox.type = 'checkbox';
+  delCheckbox.className = 'delCheckbox';
+  delCheckbox.title = 'Tandai untuk padam baris ini';
+  delCheckbox.checked = Boolean(data?.deleted);
+
+  const delText = document.createElement('span');
+  delText.innerText = 'Padam';
+  delText.style.color = 'var(--sub)';
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type='button';
+  removeBtn.innerText='✖';
+  removeBtn.title='Keluarkan baris';
+  removeBtn.style.background='#1a1a1a';
+  removeBtn.style.border='1px solid rgba(255,255,255,0.03)';
+  removeBtn.style.borderRadius='6px';
+  removeBtn.style.padding='6px 8px';
+  removeBtn.style.cursor='pointer';
+  removeBtn.style.color = 'var(--sub)';
+
+  delLabel.append(delCheckbox, delText);
+
+  wrapper.append(labelInput, amountInput, delLabel, removeBtn);
+
+  [labelInput, amountInput, delCheckbox].forEach(el=>el.addEventListener('input', saveState));
+  removeBtn.addEventListener('click', ()=>{
+    wrapper.remove();
+    saveState();
+  });
+
+  return wrapper;
+}
+
+function renderDefaultCompanies(){
+  companyListEl.innerHTML = '';
+  const saved = loadState();
+  if (saved?.companies && saved.companies.length){
+    saved.companies.forEach(c=>{
+      const row = createCompanyRow(c);
+      companyListEl.appendChild(row);
+    });
+  } else {
+    const initialCompanies = [
+      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘾𝙚𝙥𝙖𝙩",
+      "𝙎𝙬𝙞𝙛𝙩 𝙇𝙤𝙖𝙣",
+      "𝙁𝙡𝙚𝙭𝙞 𝙇𝙤𝙖𝙣",
+      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝙋𝙖𝙨𝙩𝙞",
+      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘽𝙞𝙟𝙖𝙠",
+      "𝙂𝙊 𝙇𝙤𝙖𝙣",
+      "𝙀𝙭𝙥𝙧𝙚𝙨𝙨 𝙇𝙤𝙖𝙣"
+    ];
+    initialCompanies.forEach(name=>{
+      const row = createCompanyRow({name, amount:''});
+      companyListEl.appendChild(row);
+    });
+  }
+}
+
+/* Password handling */
+passwordBtn.addEventListener('click', handlePassword);
+passwordInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') handlePassword(); });
+
+async function handlePassword() {
+  const input = passwordInput.value || '';
+  try {
+    const h = await sha256Hex(input);
+    if (input === '601601' || h === PASSWORD_HASH_HEX) {
+      passwordScreen.classList.add('hidden');
+      mainApp.classList.remove('hidden');
+      mainApp.setAttribute('aria-hidden', 'false');
+      renderDefaultCompanies();
+      restoreFields();
+      saveState();
+    } else {
+      errorMsg.style.display = 'block';
+      setTimeout(() => errorMsg.style.display = 'none', 3500);
+    }
+  } catch (e) {
+    console.error(e);
+    alert('Encryption API not available in this browser.');
+  }
+}
+
+/* Restore & build */
+function restoreFields(){
+  const saved = loadState();
+  if (!saved) return;
+  nameEl.value = saved.name || '';
+  recipientEl.value = saved.recipient || '';
+  icEl.value = saved.ic || '';
+}
+
+function buildTemplate(){
+  const name = (nameEl.value || '[NAME]').trim();
+  const companyEls = Array.from(companyListEl.querySelectorAll('.company-item'));
+  let lines = [];
+  let total = 0;
+  companyEls.forEach((el)=>{
+    const nameVal = el.querySelector('.labelInput').value.trim();
+    const amountVal = el.querySelector('.amountInput').value.trim();
+    const deleted = el.querySelector('.delCheckbox').checked;
+    if (deleted) return;
+    if (!amountVal) return;
+    const num = numberFromInput(amountVal);
+    if (!isNaN(num)) {
+      total += num;
+    }
+    lines.push(`${nameVal || 'Syarikat'} – RM ${amountVal}`);
+  });
+  const detailBayaran = lines.length ? lines.join('\n') : '(Tiada bayaran ditetapkan)';
+  const recipient = (recipientEl.value || '').trim();
+  const ic = (icEl.value || '').trim();
+
+  const output = `Hi Boss Saya ${name} dari Syarikat STAGSMUTUAL
+
+Link permohonan pinjaman Boss:  
+🔗 https://stagsmutual.com
+
+⚠️ HARI INI ADALAH TARIKH AKHIR untuk membuat bayaran pengesahan.
+
+*SOP Bayaran (Sebelum 3:00 PETANG hari ini):*  
+1. Minta nombor akaun transfer daripada saya  
+2. Buat bayaran ke akaun yang diberikan  
+3. Hantar resit bayaran untuk kemaskini sistem
+
+⚠️ *PENTING:*  
+Sebelum 5 minit nak transfer, SILA MINTA AKAUN daripada saya.  
+Jangan transfer ke akaun lain!
+
+*DETAIL BAYARAN:*  
+${detailBayaran}
+
+👤 NAMA: ${recipient}  
+🆔 IC: ${ic}  
+💳 JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*
+
+Sekiranya sudah bayar, sila hantar resit sekarang.  
+Terima kasih atas kerjasama Boss! 🙏`;
+  return {output, total, meta:{recipient: recipient || null, ic: ic || null}};
+}
+
+/* Buttons */
+generateBtn.addEventListener('click', ()=>{
+  const {output, total, meta} = buildTemplate();
+  outputEl.textContent = output;
+  totalDisplay.textContent = 'Jumlah: ' + formatMoney(Math.round(total));
+  saveState();
+
+  const now = new Date().toISOString();
+  const entry = {
+    output,
+    total: Math.round(total),
+    meta,
+    saved_at: now
+  };
+  saveHistoryEntry(entry);
+});
+
+copyBtn.addEventListener('click', async ()=>{
+  const text = outputEl.textContent || '';
+  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
+  try {
+    await navigator.clipboard.writeText(text);
+    alert('Template telah disalin ke clipboard!');
+  } catch(e) {
+    console.error(e);
+    alert('Gagal salin — cuba guna penyemak imbas yang menyokong clipboard API.');
+  }
+});
+
+waBtn.addEventListener('click', ()=>{
+  const text = outputEl.textContent || '';
+  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
+  const encoded = encodeURIComponent(text);
+  const url = `https://wa.me/?text=${encoded}`;
+  window.open(url, '_blank');
+});
+
+downloadBtn.addEventListener('click', ()=>{
+  const text = outputEl.textContent || '';
+  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'pinjaman-template.txt';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+/* History UI */
+function openHistory(){
+  renderHistoryList();
+  historyModal.style.display = 'flex';
+  historyModal.setAttribute('aria-hidden','false');
+}
+function closeHistory(){
+  historyModal.style.display = 'none';
+  historyModal.setAttribute('aria-hidden','true');
+}
+
+function renderHistoryList(){
+  const arr = loadHistory();
+  histListEl.innerHTML = '';
+  if (!arr || arr.length === 0){
+    histEmptyEl.style.display = 'block';
+    return;
+  }
+  histEmptyEl.style.display = 'none';
+  arr.forEach((it, idx) => {
+    const item = document.createElement('div');
+    item.className = 'hist-item';
+
+    const meta = document.createElement('div');
+    meta.className = 'hist-meta';
+    const title = document.createElement('div');
+    title.style.color = 'var(--text)';
+    title.style.fontWeight = '600';
+    const summary = (it.output || '').split('\n')[0] || '(kosong)';
+    title.innerText = summary.length > 80 ? summary.slice(0,77) + '...' : summary;
+    const sub = document.createElement('div');
+    sub.className = 'tiny';
+    sub.innerText = `${fmtTime(it.saved_at)} — Jumlah: RM${it.total || 0}`;
+    meta.appendChild(title);
+    meta.appendChild(sub);
+
+    const actions = document.createElement('div');
+    actions.className = 'hist-actions';
+
+    const viewBtn = document.createElement('button');
+    viewBtn.className = 'ghost';
+    viewBtn.innerText = 'View';
+    viewBtn.addEventListener('click', ()=>{
+      outputEl.textContent = it.output || '';
+      totalDisplay.textContent = 'Jumlah: ' + formatMoney(it.total || 0);
+      closeHistory();
+    });
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'alt';
+    copyBtn.innerText = 'Copy';
+    copyBtn.addEventListener('click', async ()=>{
+      try {
+        await navigator.clipboard.writeText(it.output || '');
+        alert('Sejarah disalin ke clipboard!');
+      } catch(e) {
+        alert('Gagal salin sejarah.');
+      }
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'alt';
+    delBtn.innerText = 'Delete';
+    delBtn.addEventListener('click', ()=>{
+      if (!confirm('Padam item sejarah ini?')) return;
+      deleteHistoryAt(idx);
+      renderHistoryList();
+    });
+
+    actions.appendChild(viewBtn);
+    actions.appendChild(copyBtn);
+    actions.appendChild(delBtn);
+
+    item.appendChild(meta);
+    item.appendChild(actions);
+
+    histListEl.appendChild(item);
+  });
+}
+
+historyBtn.addEventListener('click', openHistory);
+closeHistoryBtn.addEventListener('click', closeHistory);
+clearHistoryBtn.addEventListener('click', ()=>{
+  if (!confirm('Padam semua sejarah?')) return;
+  clearHistory();
+  renderHistoryList();
+});
+exportHistoryBtn.addEventListener('click', ()=>{
+  const arr = loadHistory();
+  const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), device_id: getDeviceId(), data: arr }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'pjm_history_export.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+/* ------------ Add / Reset buttons functionality ------------
+   This was missing before — the two buttons now append and reset rows properly.
+   Place these listeners after the functions above so they have access to helpers.
+------------------------------------------------------------- */
+addCompanyBtn.addEventListener('click', () => {
+  companyListEl.appendChild(createCompanyRow({ name: '', amount: '' }));
+  saveState();
+});
+
+resetCompaniesBtn.addEventListener('click', () => {
+  if (!confirm('Reset semua baris ke nilai awal?')) return;
+  // remove saved state and re-render default rows
+  localStorage.removeItem(LS_KEY);
+  renderDefaultCompanies();
+  saveState();
+});
+/* ---------------------------------------------------------- */
+
+/* Save on change for live fields */
+[nameEl, recipientEl, icEl].forEach(el=>el.addEventListener('input', saveState));
+companyListEl.addEventListener('input', saveState);
+
+// NOTE: We do not call renderDefaultCompanies() here to avoid double-rendering.
+// The UI is rendered after successful password entry (handlePassword).
+</script>
 </body>
 </html>
