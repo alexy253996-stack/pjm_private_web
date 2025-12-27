@@ -161,16 +161,20 @@
 </head>
 <body>
   <div class="container">
+    <!-- 登录区域：用户名 + 密码 -->
     <div id="passwordScreen">
       <h1>Pinjaman Template Generator</h1>
 
-      <p class="small">Masukkan kata laluan untuk akses:</p>
-      <div class="top-row">
-        <input id="passwordInput" type="password" inputmode="text" aria-label="kata laluan" placeholder="Kata Laluan" class="form-input" />
+      <p class="small">Sila masukkan Pengguna dan Kata Laluan untuk akses:</p>
+      <div style="display:flex;gap:8px;flex-direction:column;margin-bottom:8px;">
+        <input id="loginUser" class="form-input" type="text" placeholder="Pengguna (contoh: H)" aria-label="pengguna" />
+        <input id="passwordInput" class="form-input" type="password" placeholder="Kata Laluan" aria-label="kata laluan" />
+      </div>
+      <div style="display:flex;gap:8px;">
         <button id="passwordBtn" type="button">Masuk</button>
       </div>
-      <p id="errorMsg" class="small" style="color:#ff6b6b;display:none;">Kata laluan salah!</p>
-      <p class="small" style="margin-top:8px;color:var(--sub);">Nota: penyemak imbas sahaja - jika anda mahu keselamatan sebenar, guna pengesahan di server.</p>
+      <p id="errorMsg" class="small" style="color:#ff6b6b;display:none;margin-top:8px;">Pengguna atau kata laluan salah!</p>
+      <p class="small" style="margin-top:8px;color:var(--sub);">Nota: penyemak imbas sahaja - untuk keselamatan sebenar gunakan pengesahan di server.</p>
     </div>
 
     <!-- Main App (Template A) -->
@@ -221,7 +225,7 @@
       </div>
     </div>
 
-    <!-- Template B: 完整可编辑副本（跟第一页一模一样的功能） -->
+    <!-- Template B -->
     <div id="templateB" class="hidden" aria-hidden="true">
       <h1>Template B — Salinan Fungsi Penuh</h1>
 
@@ -260,15 +264,12 @@
       </div>
 
       <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
-      <!-- keep the small preview area above blank (but we will not place final text here) -->
       <pre id="outputB" aria-live="polite"></pre>
 
-      <!-- The blank area where final generated template should appear (user requested) -->
       <div style="margin-top:12px;">
         <pre id="outputB_blank" aria-hidden="false" style="white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;color:var(--text);"></pre>
       </div>
 
-      <!-- Jumlah and note are placed BELOW the blank area per latest layout -->
       <div class="bottom" style="margin-top:12px;">
         <div class="small" id="totalDisplayB">Jumlah: RM0</div>
         <div class="small">Template B disimpan automatik (localStorage B)</div>
@@ -301,11 +302,14 @@ const HISTORY_KEY_BASE = 'pjm_web_change_history_v1';
 const HISTORY_LIMIT = 30;
 const DEVICE_ID_KEY = 'pjm_device_id_v1';
 
-/* DOM - Main (A) */
+/* DOM - 登录相关 */
+const loginUser = document.getElementById('loginUser');
 const passwordInput = document.getElementById('passwordInput');
 const passwordBtn = document.getElementById('passwordBtn');
 const errorMsg = document.getElementById('errorMsg');
 const passwordScreen = document.getElementById('passwordScreen');
+
+/* 其余 DOM 元素 */
 const mainApp = document.getElementById('mainApp');
 
 const companyListEl = document.getElementById('companyList');
@@ -326,7 +330,7 @@ const outputEl = document.getElementById('output');
 const totalDisplay = document.getElementById('totalDisplay');
 const openTemplateBBtn = document.getElementById('openTemplateBBtn');
 
-/* DOM - Template B */
+/* Template B DOM */
 const templateB = document.getElementById('templateB');
 const b_name = document.getElementById('b_name');
 const b_companyList = document.getElementById('b_companyList');
@@ -344,7 +348,7 @@ const b_historyBtn = document.getElementById('b_historyBtn');
 const b_backBtn = document.getElementById('b_backBtn');
 
 const outputB = document.getElementById('outputB');
-const outputB_blank = document.getElementById('outputB_blank'); // blank area
+const outputB_blank = document.getElementById('outputB_blank');
 const totalDisplayB = document.getElementById('totalDisplayB');
 
 /* History modal elements */
@@ -426,7 +430,7 @@ function loadState(){
   try { return JSON.parse(raw); } catch(e){ return null; }
 }
 
-/* existing state persistence (B) - separate key so B can be edited independently */
+/* existing state persistence (B) */
 const LS_KEY_B = 'pjm_web_change_v1_b';
 function saveStateB(){
   const companies = Array.from(b_companyList.querySelectorAll('.company-item-b')).map(el=>({
@@ -482,7 +486,7 @@ function getHistoryKey(){
   return `${HISTORY_KEY_BASE}::${deviceId}`;
 }
 
-/* history persistence (per-device) */
+/* history persistence */
 function loadHistory(){
   const raw = localStorage.getItem(getHistoryKey());
   if (!raw) return [];
@@ -506,7 +510,7 @@ function clearHistory(){
   localStorage.removeItem(getHistoryKey());
 }
 
-/* ----------------- Company rows management (A) ----------------- */
+/* Company rows (A) */
 function createCompanyRow(data){
   const wrapper = document.createElement('div');
   wrapper.className = 'company-row company-item';
@@ -592,7 +596,7 @@ function renderDefaultCompanies(){
   }
 }
 
-/* ----------------- Company rows management (B) ----------------- */
+/* Company rows (B) */
 function createCompanyRowB(data){
   const wrapper = document.createElement('div');
   wrapper.className = 'company-row company-item-b';
@@ -681,15 +685,19 @@ function renderDefaultCompaniesB(){
   }
 }
 
-/* Password handling */
+/* Login handling: require username === 'H' and password === '112233' OR match PASSWORD_HASH_HEX */
 passwordBtn.addEventListener('click', handlePassword);
 passwordInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') handlePassword(); });
+loginUser.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') handlePassword(); });
 
 async function handlePassword() {
+  const username = (loginUser && loginUser.value) ? loginUser.value.trim() : '';
   const input = passwordInput.value || '';
   try {
     const h = await sha256Hex(input);
-    if (input === '601601' || h === PASSWORD_HASH_HEX) {
+    // allow login when username is 'H' and password is exactly '112233'
+    // OR when password hash matches existing PASSWORD_HASH_HEX (compatibility)
+    if ((username === 'H' && input === '112233') || (h === PASSWORD_HASH_HEX)) {
       passwordScreen.classList.add('hidden');
       mainApp.classList.remove('hidden');
       mainApp.setAttribute('aria-hidden', 'false');
@@ -878,24 +886,21 @@ downloadBtn.addEventListener('click', ()=>{
   URL.revokeObjectURL(url);
 });
 
-/* Buttons - B
-   Adjusted so B's copy/wa/download operate on the blank area (outputB_blank),
-   while leaving other code/structure as in the latest version.
-*/
+/* Buttons - B (final output placed in outputB_blank) */
 b_generateBtn.addEventListener('click', ()=>{
   const { text, total, meta } = buildTemplateBTextFromB();
 
-  // Put final text into the blank area (user requested)
+  // Put final text into the blank area
   if (outputB_blank) {
     outputB_blank.textContent = text;
   }
-  // Clear the small preview above (so final text appears only in blank)
+  // Clear the small preview above
   if (outputB) outputB.textContent = '';
 
   // Update total display below blank
   totalDisplayB.textContent = 'Jumlah: RM' + Math.round(total);
 
-  // Save B state and history as before
+  // Save B state and history
   saveStateB();
   const now = new Date().toISOString();
   const entry = {
@@ -909,7 +914,6 @@ b_generateBtn.addEventListener('click', ()=>{
 });
 
 b_copyBtn.addEventListener('click', async ()=>{
-  // Read text from blank area
   const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   try {
@@ -988,7 +992,6 @@ function renderHistoryList(){
     viewBtn.addEventListener('click', ()=>{
       if (it.template === 'B') {
         openTemplateB();
-        // show the historical content in the blank area (because final output is there)
         if (outputB_blank) outputB_blank.textContent = it.output || '';
         totalDisplayB.textContent = 'Jumlah: RM' + Math.round(it.total || 0);
       } else {
@@ -1052,35 +1055,33 @@ exportHistoryBtn.addEventListener('click', ()=>{
   URL.revokeObjectURL(url);
 });
 
-/* ------------ Add / Reset buttons functionality (A) ------------ */
+/* Add / Reset (A) */
 addCompanyBtn.addEventListener('click', () => {
   companyListEl.appendChild(createCompanyRow({ name: '', amount: '' }));
   saveState();
 });
-
 resetCompaniesBtn.addEventListener('click', () => {
   if (!confirm('Reset semua baris ke nilai awal?')) return;
   localStorage.removeItem(LS_KEY);
   renderDefaultCompanies();
   saveState();
 });
-/* ------------ Add / Reset buttons functionality (B) ------------ */
+
+/* Add / Reset (B) */
 b_addCompanyBtn.addEventListener('click', () => {
   b_companyList.appendChild(createCompanyRowB({ name: '', amount: '' }));
   saveStateB();
 });
-
 b_resetCompaniesBtn.addEventListener('click', () => {
   if (!confirm('Reset semua baris B ke nilai awal?')) return;
   localStorage.removeItem(LS_KEY_B);
   renderDefaultCompaniesB();
   saveStateB();
 });
-/* Save on change for live fields */
+
+/* Save on change */
 [nameEl, recipientEl, icEl].forEach(el=>el.addEventListener('input', saveState));
 companyListEl.addEventListener('input', saveState);
-
-/* Save on change for B fields */
 [b_name, b_recipient, b_ic].forEach(el=>el.addEventListener('input', saveStateB));
 b_companyList.addEventListener('input', saveStateB);
 
@@ -1108,7 +1109,6 @@ b_backBtn.addEventListener('click', ()=>{
   openMain();
 });
 
-/* Import A -> B */
 importFromABtn.addEventListener('click', ()=>{
   b_name.value = nameEl.value || '';
   b_recipient.value = recipientEl.value || '';
