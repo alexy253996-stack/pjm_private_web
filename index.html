@@ -259,7 +259,7 @@
         <button id="b_backBtn" class="ghost" type="button">← Kembali</button>
       </div>
 
-      <h2 style="margin-top:12px;color:var(--text);">Output (Template B):</h2>
+      <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
       <pre id="outputB" aria-live="polite"></pre>
 
       <div class="bottom" style="margin-top:12px;">
@@ -768,43 +768,61 @@ Terima kasih atas kerjasama Boss! 🙏`;
   return {output, total, meta:{recipient: recipient || null, ic: ic || null}};
 }
 
-/* Build template B based on B form (user requested specific text) */
+/* Build template B based on B form (only include companies with amounts) */
 function buildTemplateBTextFromB(){
   const name = (b_name.value || '[NAME]').trim();
   const companyEls = Array.from(b_companyList.querySelectorAll('.company-item-b'));
-  const companies = [];
+  const included = [];
   let total = 0;
-  for (let i=0;i<companyEls.length && companies.length < 7;i++){
-    const el = companyEls[i];
+  companyEls.forEach((el)=>{
     const deleted = el.querySelector('.delCheckboxB').checked;
-    if (deleted) continue;
+    if (deleted) return;
     const cname = (el.querySelector('.labelInputB').value || '').trim();
     const camtRaw = (el.querySelector('.amountInputB').value || '').trim();
+    if (!camtRaw) return; // If no amount, skip the company (matching page A behavior)
     const num = numberFromInput(camtRaw);
     if (!isNaN(num)) total += num;
-    companies.push({name: cname || '', amountRaw: camtRaw || ''});
-  }
-  while (companies.length < 7) companies.push({name:'', amountRaw:''});
+    included.push({ name: cname || 'Syarikat', amountRaw: camtRaw });
+  });
+
   const recipient = (b_recipient.value || '').trim();
   const ic = (b_ic.value || '').trim();
 
   const lines = [];
-  lines.push(`📞Hi Boss, Saya ${name} dari Syarikat STAGSMUTUAL（P.C 601）`);
+  lines.push(`Hi Boss Saya ${name} dari Syarikat STAGSMUTUAL`);
+  lines.push('');
+  lines.push(`Link permohonan pinjaman Boss:  `);
+  lines.push(`🔗 https://stagsmutual.com`);
+  lines.push('');
+  lines.push(`⚠️ HARI INI ADALAH TARIKH AKHIR untuk membuat bayaran pengesahan.`);
+  lines.push('');
+  lines.push(`*SOP Bayaran (Sebelum 3:00 PETANG hari ini):*  `);
+  lines.push(`1. Minta nombor akaun transfer daripada saya  `);
+  lines.push(`2. Buat bayaran ke akaun yang diberikan  `);
+  lines.push(`3. Hantar resit bayaran untuk kemaskini sistem`);
+  lines.push('');
+  lines.push(`⚠️ *PENTING:*  `);
+  lines.push(`Sebelum 5 minit nak transfer, SILA MINTA AKAUN daripada saya.  `);
+  lines.push(`Jangan transfer ke akaun lain!`);
   lines.push('');
   lines.push(`*DETAIL BAYARAN:*  `);
-  companies.forEach(c=>{
-    lines.push(`${c.name || '(Company)'}`);
-  });
+
+  if (included.length) {
+    included.forEach(c => {
+      lines.push(`${c.name} – RM ${c.amountRaw}`);
+    });
+  } else {
+    lines.push(`(Tiada bayaran ditetapkan)`);
+  }
+
   lines.push('');
   lines.push(`👤 NAMA: ${recipient}`);
   lines.push(`🆔 IC: ${ic}`);
-  lines.push(`💳 JUMLAH: *RM${formatMoneyNumber(total)}*`);
+  lines.push(`💳 JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*`);
   lines.push('');
-  lines.push(`⚠️HARI INI SILA BAYAR *SEBELUM 3:00 PETANG* UNTUK AVOID CAJ`);
-  lines.push('');
-  lines.push(`⚠️SEBELUM 5MIN TRANSFER *MINTA ACC DARIPADA SAYA DAN IKUT SOP*`);
-  lines.push('');
-  lines.push(`TERIMA KASIH🙏`);
+  lines.push(`Sekiranya sudah bayar, sila hantar resit sekarang.  `);
+  lines.push(`Terima kasih atas kerjasama Boss! 🙏`);
+
   return { text: lines.join('\n'), total, meta: { recipient: recipient || null, ic: ic || null } };
 }
 
@@ -1092,7 +1110,7 @@ importFromABtn.addEventListener('click', ()=>{
   b_recipient.value = recipientEl.value || '';
   b_ic.value = icEl.value || '';
 
-  // copy up to current company rows (preserve deleted state handling)
+  // copy company rows
   b_companyList.innerHTML = '';
   const companyEls = Array.from(companyListEl.querySelectorAll('.company-item'));
   companyEls.forEach((el)=>{
@@ -1110,17 +1128,11 @@ importFromABtn.addEventListener('click', ()=>{
   alert('Data berjaya diimport dari Halaman A ke Halaman B.');
 });
 
-/* Template B: sync helper to populate an on-open preview (optional) */
-function populateBPreviewFromA(){
-  // This is used by older logic; kept for compatibility.
-  b_name.value = nameEl.value || '';
-  b_recipient.value = recipientEl.value || '';
-  b_ic.value = icEl.value || '';
-}
+/* Initialize notes:
+   - UI becomes visible after correct password entry (handlePassword).
+   - renderDefaultCompanies() and renderDefaultCompaniesB() are called on successful login.
+*/
 
-/* NOTE: Rendering at login avoids double render; we render after successful password entry (handlePassword) */
-
-/* Initialize: if allowed (no auto-login) the UI becomes visible after password */
 </script>
 </body>
 </html>
