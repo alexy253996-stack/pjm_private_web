@@ -768,7 +768,10 @@ Terima kasih atas kerjasama Boss! 🙏`;
   return {output, total, meta:{recipient: recipient || null, ic: ic || null}};
 }
 
-/* Build template B based on B form (only include companies with amounts) */
+/* Build template B based on B form (only include companies with amounts) 
+   Updated per request: first line -> "📞Hi Boss, Saya [NAME] dari Syarikat STAGSMUTUAL（P.C 601）"
+   Removed the long SOP block; instead we place the two warning lines directly under *DETAIL BAYARAN:*.
+*/
 function buildTemplateBTextFromB(){
   const name = (b_name.value || '[NAME]').trim();
   const companyEls = Array.from(b_companyList.querySelectorAll('.company-item-b'));
@@ -789,22 +792,10 @@ function buildTemplateBTextFromB(){
   const ic = (b_ic.value || '').trim();
 
   const lines = [];
-  lines.push(`Hi Boss Saya ${name} dari Syarikat STAGSMUTUAL`);
+  // First line: user requested format with phone icon and P.C 601
+  lines.push(`📞Hi Boss, Saya ${name} dari Syarikat STAGSMUTUAL（P.C 601）`);
   lines.push('');
-  lines.push(`Link permohonan pinjaman Boss:  `);
-  lines.push(`🔗 https://stagsmutual.com`);
-  lines.push('');
-  lines.push(`⚠️ HARI INI ADALAH TARIKH AKHIR untuk membuat bayaran pengesahan.`);
-  lines.push('');
-  lines.push(`*SOP Bayaran (Sebelum 3:00 PETANG hari ini):*  `);
-  lines.push(`1. Minta nombor akaun transfer daripada saya  `);
-  lines.push(`2. Buat bayaran ke akaun yang diberikan  `);
-  lines.push(`3. Hantar resit bayaran untuk kemaskini sistem`);
-  lines.push('');
-  lines.push(`⚠️ *PENTING:*  `);
-  lines.push(`Sebelum 5 minit nak transfer, SILA MINTA AKAUN daripada saya.  `);
-  lines.push(`Jangan transfer ke akaun lain!`);
-  lines.push('');
+  // DETAIL BAYARAN header
   lines.push(`*DETAIL BAYARAN:*  `);
 
   if (included.length) {
@@ -815,13 +806,18 @@ function buildTemplateBTextFromB(){
     lines.push(`(Tiada bayaran ditetapkan)`);
   }
 
+  // The two warning lines placed directly below *DETAIL BAYARAN:*
   lines.push('');
+  lines.push(`⚠️HARI INI SILA BAYAR *SEBELUM 3:00 PETANG* UNTUK AVOID CAJ`);
+  lines.push('');
+  lines.push(`⚠️SEBELUM 5MIN TRANSFER *MINTA ACC DARIPADA SAYA DAN IKUT SOP*`);
+  lines.push('');
+  // Recipient / IC / Total
   lines.push(`👤 NAMA: ${recipient}`);
   lines.push(`🆔 IC: ${ic}`);
   lines.push(`💳 JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*`);
   lines.push('');
-  lines.push(`Sekiranya sudah bayar, sila hantar resit sekarang.  `);
-  lines.push(`Terima kasih atas kerjasama Boss! 🙏`);
+  lines.push(`TERIMA KASIH🙏`);
 
   return { text: lines.join('\n'), total, meta: { recipient: recipient || null, ic: ic || null } };
 }
@@ -1136,4 +1132,3 @@ importFromABtn.addEventListener('click', ()=>{
 </script>
 </body>
 </html>
-
