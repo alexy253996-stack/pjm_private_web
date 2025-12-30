@@ -94,8 +94,44 @@
       margin-top:12px;
       color:var(--text);
     }
-    .controls { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .controls { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; align-items:center; }
     .bottom { display:flex; justify-content:space-between; align-items:center; margin-top:16px; gap:12px; flex-wrap:wrap; color:var(--sub); }
+
+    /* small squared arrow buttons (shared on every page) */
+    .nav-arrow {
+      width:40px;
+      height:40px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      border-radius:6px;
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.06);
+      color:var(--text);
+      cursor:pointer;
+    }
+    .nav-arrow.disabled { opacity:0.35; cursor:default; }
+
+    /* import drawer */
+    .import-wrap { position:relative; display:inline-block; }
+    .import-btn { padding:8px 10px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--sub); cursor:pointer; }
+    .import-drawer {
+      position:absolute;
+      right:0;
+      top:46px;
+      background:#0b0b0d;
+      border:1px solid rgba(255,255,255,0.04);
+      padding:8px;
+      border-radius:8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      z-index:40;
+      min-width:200px;
+      display:none;
+    }
+    .import-drawer.open { display:block; }
+    .import-drawer button { display:block; width:100%; text-align:left; margin:4px 0; padding:8px; background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.02); color:var(--text); }
+    .import-drawer .title { font-weight:700; color:var(--sub); margin-bottom:6px; padding-left:2px; }
 
     /* password-art styles left in case you re-add an image later */
     .password-art{
@@ -151,10 +187,10 @@
 
     @media (max-width:640px){ .company-row { flex-direction:column; align-items:stretch; } .company-row .label{width:auto} }
 
-    /* Template B styles for company rows */
-    .b-company-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
-    .b-company-row .b-name { flex:1; background:#0e0e10; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.03); color:var(--text) }
-    .b-company-row .b-amt { width:140px; text-align:right; background:#0e0e10; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.03); color:var(--text) }
+    /* Template B/C/D styles for company rows */
+    .b-company-row, .c-company-row, .d-company-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .b-company-row .b-name, .c-company-row .c-name, .d-company-row .d-name { flex:1; background:#0e0e10; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.03); color:var(--text) }
+    .b-company-row .b-amt, .c-company-row .c-amt, .d-company-row .d-amt { width:140px; text-align:right; background:#0e0e10; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.03); color:var(--text) }
 
     .muted-note { font-size:13px; color:var(--muted); margin-top:6px; }
   </style>
@@ -179,7 +215,7 @@
 
     <!-- Main App (Template A) -->
     <div id="mainApp" class="hidden" aria-hidden="true">
-      <h1>Pinjaman Template Generator</h1>
+      <h1>首次对接</h1>
 
       <div class="form-group">
         <label for="name">Nama Pelanggan ( [NAME] )</label>
@@ -189,9 +225,21 @@
       <div>
         <label>Maklumat Bayaran Syarikat (boleh tambah / padam baris)</label>
         <div class="company-list" id="companyList"></div>
-        <div style="display:flex;gap:8px;margin-top:6px;">
+        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
           <button id="addCompanyBtn" type="button">Tambah Baris</button>
           <button id="resetCompaniesBtn" type="button" class="alt">Reset Baris</button>
+
+          <!-- Import drawer for Page A (import from B/C/D) -->
+          <div class="import-wrap" style="margin-left:auto">
+            <button id="importToggleA" class="import-btn" aria-expanded="false">Import Dari ▾</button>
+            <div id="importDrawerA" class="import-drawer" aria-hidden="true">
+              <div class="title">Import Dari:</div>
+              <button data-src="B" data-target="A">Halaman B (再次对接A)</button>
+              <button data-src="C" data-target="A">Halaman C (再次对接B)</button>
+              <button data-src="D" data-target="A">Halaman D (加保粉号)</button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -212,8 +260,9 @@
         <button id="downloadBtn" class="alt" type="button">Muat turun .txt</button>
         <button id="historyBtn" class="ghost" type="button">History</button>
 
-        <!-- 打开模版 B 的按钮 -->
-        <button id="openTemplateBBtn" class="alt" type="button" title="Buka mod templat lain">Buka Templat Lain →</button>
+        <!-- Previous / Next page arrows (on every page there are nav buttons with same classes) -->
+        <button class="nav-arrow nav-prev" title="Halaman Sebelumnya" aria-label="Previous page">◀</button>
+        <button class="nav-arrow nav-next" title="Halaman Seterusnya" aria-label="Next page">▶</button>
       </div>
 
       <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
@@ -227,7 +276,7 @@
 
     <!-- Template B -->
     <div id="templateB" class="hidden" aria-hidden="true">
-      <h1>Template B — Salinan Fungsi Penuh</h1>
+      <h1>再次对接A</h1>
 
       <div class="form-group">
         <label for="b_name">Nama Pelanggan ( [NAME] )</label>
@@ -237,10 +286,21 @@
       <div>
         <label>Maklumat Bayaran Syarikat (boleh tambah / padam baris) — (B)</label>
         <div class="company-list" id="b_companyList"></div>
-        <div style="display:flex;gap:8px;margin-top:6px;">
+        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
           <button id="b_addCompanyBtn" type="button">Tambah Baris</button>
           <button id="b_resetCompaniesBtn" type="button" class="alt">Reset Baris</button>
-          <button id="importFromABtn" type="button" class="alt" title="Import data dari Halaman A">Import Dari A</button>
+
+          <!-- IMPORT DRAWER moved into the place where "Import Dari A" used to be -->
+          <div class="import-wrap" style="margin-left:auto">
+            <button id="importToggleB" class="import-btn" aria-expanded="false">Import Dari ▾</button>
+            <div id="importDrawerB" class="import-drawer" aria-hidden="true">
+              <div class="title">Import Dari:</div>
+              <button data-src="A" data-target="B">Halaman A (首次对接)</button>
+              <button data-src="C" data-target="B">Halaman C (再次对接B)</button>
+              <button data-src="D" data-target="B">Halaman D (加保粉号)</button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -261,18 +321,165 @@
         <button id="b_downloadBtn" class="alt" type="button">Muat turun .txt</button>
         <button id="b_historyBtn" class="ghost" type="button">History</button>
         <button id="b_backBtn" class="ghost" type="button">← Kembali</button>
+
+        <!-- nav arrows on this page too -->
+        <button class="nav-arrow nav-prev" title="Halaman Sebelumnya" aria-label="Previous page">◀</button>
+        <button class="nav-arrow nav-next" title="Halaman Seterusnya" aria-label="Next page">▶</button>
       </div>
 
       <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
       <pre id="outputB" aria-live="polite"></pre>
 
       <div style="margin-top:12px;">
-        <pre id="outputB_blank" aria-hidden="false" style="white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;color:var(--text);"></pre>
+        <pre id="outputB_blank" aria-hidden="false" style="white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;color:var(--text)"></pre>
       </div>
 
       <div class="bottom" style="margin-top:12px;">
         <div class="small" id="totalDisplayB">Jumlah: RM0</div>
         <div class="small">Template B disimpan automatik (localStorage B)</div>
+      </div>
+    </div>
+
+    <!-- Template C -->
+    <div id="templateC" class="hidden" aria-hidden="true">
+      <h1>再次对接B</h1>
+
+      <div class="form-group">
+        <label for="c_name">Nama Pelanggan ( [NAME] )</label>
+        <input id="c_name" class="form-input" type="text" placeholder="Contoh: ALEX" />
+      </div>
+
+      <div>
+        <label>Maklumat Bayaran Syarikat (boleh tambah / padam baris) — (C)</label>
+        <div class="company-list" id="c_companyList"></div>
+        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
+          <button id="c_addCompanyBtn" type="button">Tambah Baris</button>
+          <button id="c_resetCompaniesBtn" type="button" class="alt">Reset Baris</button>
+
+          <!-- IMPORT DRAWER moved into the place where "Import Dari A" used to be -->
+          <div class="import-wrap" style="margin-left:auto">
+            <button id="importToggleC" class="import-btn" aria-expanded="false">Import Dari ▾</button>
+            <div id="importDrawerC" class="import-drawer" aria-hidden="true">
+              <div class="title">Import Dari:</div>
+              <button data-src="A" data-target="C">Halaman A (首次对接)</button>
+              <button data-src="B" data-target="C">Halaman B (再次对接A)</button>
+              <button data-src="D" data-target="C">Halaman D (加保粉号)</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="c_recipient">Nama Penerima (NAMA)</label>
+        <input id="c_recipient" class="form-input" type="text" placeholder="Contoh: ALI BIN ALI" />
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="c_ic">Nombor IC</label>
+        <input id="c_ic" class="form-input" type="text" placeholder="Contoh: 123456789" />
+      </div>
+
+      <div class="controls" style="margin-top:10px;">
+        <button id="c_generateBtn" type="button">Generate Template C</button>
+        <button id="c_copyBtn" class="alt" type="button">Salin ke Clipboard</button>
+        <button id="c_waBtn" class="alt" type="button">Buka WhatsApp</button>
+        <button id="c_downloadBtn" class="alt" type="button">Muat turun .txt</button>
+        <button id="c_historyBtn" class="ghost" type="button">History</button>
+        <button id="c_backBtn" class="ghost" type="button">← Kembali</button>
+
+        <!-- nav arrows on this page too -->
+        <button class="nav-arrow nav-prev" title="Halaman Sebelumnya" aria-label="Previous page">◀</button>
+        <button class="nav-arrow nav-next" title="Halaman Seterusnya" aria-label="Next page">▶</button>
+      </div>
+
+      <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
+      <pre id="outputC" aria-live="polite"></pre>
+
+      <div style="margin-top:12px;">
+        <pre id="outputC_blank" aria-hidden="false" style="white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;color:var(--text)"></pre>
+      </div>
+
+      <div class="bottom" style="margin-top:12px;">
+        <div class="small" id="totalDisplayC">Jumlah: RM0</div>
+        <div class="small">Template C disimpan automatik (localStorage C)</div>
+      </div>
+    </div>
+
+    <!-- Template D -->
+    <div id="templateD" class="hidden" aria-hidden="true">
+      <h1>加保粉号</h1>
+
+      <div class="form-group">
+        <label for="d_name">Nama Pelanggan ( [NAME] )</label>
+        <input id="d_name" class="form-input" type="text" placeholder="Contoh: ALEX" />
+      </div>
+
+      <div>
+        <label>Maklumat Bayaran Syarikat (boleh tambah / padam baris) — (D)</label>
+        <div class="company-list" id="d_companyList"></div>
+        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
+          <button id="d_addCompanyBtn" type="button">Tambah Baris</button>
+          <button id="d_resetCompaniesBtn" type="button" class="alt">Reset Baris</button>
+
+          <!-- IMPORT DRAWER moved into the place where "Import Dari A" used to be -->
+          <div class="import-wrap" style="margin-left:auto">
+            <button id="importToggleD" class="import-btn" aria-expanded="false">Import Dari ▾</button>
+            <div id="importDrawerD" class="import-drawer" aria-hidden="true">
+              <div class="title">Import Dari:</div>
+              <button data-src="A" data-target="D">Halaman A (首次对接)</button>
+              <button data-src="B" data-target="D">Halaman B (再次对接A)</button>
+              <button data-src="C" data-target="D">Halaman C (再次对接B)</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="d_recipient">Nama Penerima (NAMA)</label>
+        <input id="d_recipient" class="form-input" type="text" placeholder="Contoh: ALI BIN ALI" />
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="d_ic">Nombor IC</label>
+        <input id="d_ic" class="form-input" type="text" placeholder="Contoh: 123456789" />
+      </div>
+
+      <!-- New editable fields for "MY NO" and "MY NAME" -->
+      <div style="margin-top:12px;">
+        <label for="d_myPhone">PHONE NO (MY NO)</label>
+        <input id="d_myPhone" class="form-input" type="text" placeholder="Contoh: 012-3456789" />
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="d_myName">NAME (MY NAME)</label>
+        <input id="d_myName" class="form-input" type="text" placeholder="Contoh: NAMA SAYA" />
+      </div>
+
+      <div class="controls" style="margin-top:10px;">
+        <button id="d_generateBtn" type="button">Generate Template D</button>
+        <button id="d_copyBtn" class="alt" type="button">Salin ke Clipboard</button>
+        <button id="d_waBtn" class="alt" type="button">Buka WhatsApp</button>
+        <button id="d_downloadBtn" class="alt" type="button">Muat turun .txt</button>
+        <button id="d_historyBtn" class="ghost" type="button">History</button>
+        <button id="d_backBtn" class="ghost" type="button">← Kembali</button>
+
+        <!-- nav arrows on this page too -->
+        <button class="nav-arrow nav-prev" title="Halaman Sebelumnya" aria-label="Previous page">◀</button>
+        <button class="nav-arrow nav-next" title="Halaman Seterusnya" aria-label="Next page">▶</button>
+      </div>
+
+      <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
+      <pre id="outputD" aria-live="polite"></pre>
+
+      <div style="margin-top:12px;">
+        <pre id="outputD_blank" aria-hidden="false" style="white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;color:var(--text)"></pre>
+      </div>
+
+      <div class="bottom" style="margin-top:12px;">
+        <div class="small" id="totalDisplayD">Jumlah: RM0</div>
+        <div class="small">Template D disimpan automatik (localStorage D)</div>
       </div>
     </div>
 
@@ -328,7 +535,6 @@ const historyBtn = document.getElementById('historyBtn');
 
 const outputEl = document.getElementById('output');
 const totalDisplay = document.getElementById('totalDisplay');
-const openTemplateBBtn = document.getElementById('openTemplateBBtn');
 
 /* Template B DOM */
 const templateB = document.getElementById('templateB');
@@ -336,7 +542,6 @@ const b_name = document.getElementById('b_name');
 const b_companyList = document.getElementById('b_companyList');
 const b_addCompanyBtn = document.getElementById('b_addCompanyBtn');
 const b_resetCompaniesBtn = document.getElementById('b_resetCompaniesBtn');
-const importFromABtn = document.getElementById('importFromABtn');
 const b_recipient = document.getElementById('b_recipient');
 const b_ic = document.getElementById('b_ic');
 
@@ -350,6 +555,60 @@ const b_backBtn = document.getElementById('b_backBtn');
 const outputB = document.getElementById('outputB');
 const outputB_blank = document.getElementById('outputB_blank');
 const totalDisplayB = document.getElementById('totalDisplayB');
+
+/* Template C DOM */
+const templateC = document.getElementById('templateC');
+const c_name = document.getElementById('c_name');
+const c_companyList = document.getElementById('c_companyList');
+const c_addCompanyBtn = document.getElementById('c_addCompanyBtn');
+const c_resetCompaniesBtn = document.getElementById('c_resetCompaniesBtn');
+const c_recipient = document.getElementById('c_recipient');
+const c_ic = document.getElementById('c_ic');
+
+const c_generateBtn = document.getElementById('c_generateBtn');
+const c_copyBtn = document.getElementById('c_copyBtn');
+const c_waBtn = document.getElementById('c_waBtn');
+const c_downloadBtn = document.getElementById('c_downloadBtn');
+const c_historyBtn = document.getElementById('c_historyBtn');
+const c_backBtn = document.getElementById('c_backBtn');
+
+const outputC = document.getElementById('outputC');
+const outputC_blank = document.getElementById('outputC_blank');
+const totalDisplayC = document.getElementById('totalDisplayC');
+
+/* Template D DOM */
+const templateD = document.getElementById('templateD');
+const d_name = document.getElementById('d_name');
+const d_companyList = document.getElementById('d_companyList');
+const d_addCompanyBtn = document.getElementById('d_addCompanyBtn');
+const d_resetCompaniesBtn = document.getElementById('d_resetCompaniesBtn');
+const d_recipient = document.getElementById('d_recipient');
+const d_ic = document.getElementById('d_ic');
+
+/* NEW: owner contact fields editable on page D */
+const d_myPhone = document.getElementById('d_myPhone');
+const d_myName = document.getElementById('d_myName');
+
+const d_generateBtn = document.getElementById('d_generateBtn');
+const d_copyBtn = document.getElementById('d_copyBtn');
+const d_waBtn = document.getElementById('d_waBtn');
+const d_downloadBtn = document.getElementById('d_downloadBtn');
+const d_historyBtn = document.getElementById('d_historyBtn');
+const d_backBtn = document.getElementById('d_backBtn');
+
+const outputD = document.getElementById('outputD');
+const outputD_blank = document.getElementById('outputD_blank');
+const totalDisplayD = document.getElementById('totalDisplayD');
+
+/* Import drawer buttons */
+const importToggleA = document.getElementById('importToggleA');
+const importDrawerA = document.getElementById('importDrawerA');
+const importToggleB = document.getElementById('importToggleB');
+const importDrawerB = document.getElementById('importDrawerB');
+const importToggleC = document.getElementById('importToggleC');
+const importDrawerC = document.getElementById('importDrawerC');
+const importToggleD = document.getElementById('importToggleD');
+const importDrawerD = document.getElementById('importDrawerD');
 
 /* History modal elements */
 const historyModal = document.getElementById('historyModal');
@@ -449,6 +708,52 @@ function saveStateB(){
 }
 function loadStateB(){
   const raw = localStorage.getItem(LS_KEY_B);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch(e){ return null; }
+}
+
+/* state persistence C & D */
+const LS_KEY_C = 'pjm_web_change_v1_c';
+const LS_KEY_D = 'pjm_web_change_v1_d';
+function saveStateC(){
+  const companies = Array.from(c_companyList.querySelectorAll('.company-item-c')).map(el=>({
+    name: el.querySelector('.labelInputC')?.value || el.querySelector('.labelInput')?.value || '',
+    amount: el.querySelector('.amountInputC')?.value || el.querySelector('.amountInput')?.value || '',
+    deleted: el.querySelector('.delCheckboxC')?.checked || false
+  }));
+  const state = {
+    name: c_name.value,
+    recipient: c_recipient.value,
+    ic: c_ic.value,
+    companies
+  };
+  const clean = sanitizeData(state) || {};
+  localStorage.setItem(LS_KEY_C, JSON.stringify(clean));
+}
+function loadStateC(){
+  const raw = localStorage.getItem(LS_KEY_C);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch(e){ return null; }
+}
+function saveStateD(){
+  const companies = Array.from(d_companyList.querySelectorAll('.company-item-d')).map(el=>({
+    name: el.querySelector('.labelInputD')?.value || el.querySelector('.labelInput')?.value || '',
+    amount: el.querySelector('.amountInputD')?.value || el.querySelector('.amountInput')?.value || '',
+    deleted: el.querySelector('.delCheckboxD')?.checked || false
+  }));
+  const state = {
+    name: d_name.value,
+    recipient: d_recipient.value,
+    ic: d_ic.value,
+    companies,
+    myPhone: d_myPhone?.value || '',
+    myName: d_myName?.value || ''
+  };
+  const clean = sanitizeData(state) || {};
+  localStorage.setItem(LS_KEY_D, JSON.stringify(clean));
+}
+function loadStateD(){
+  const raw = localStorage.getItem(LS_KEY_D);
   if (!raw) return null;
   try { return JSON.parse(raw); } catch(e){ return null; }
 }
@@ -685,10 +990,223 @@ function renderDefaultCompaniesB(){
   }
 }
 
-/* Login handling: require username === 'H' and password === '112233' OR match PASSWORD_HASH_HEX */
+/* Company rows (C) */
+function createCompanyRowC(data){
+  const wrapper = document.createElement('div');
+  wrapper.className = 'company-row company-item-c';
+  wrapper.style.alignItems = 'center';
+
+  const labelInput = document.createElement('input');
+  labelInput.type = 'text';
+  labelInput.value = data?.name || '';
+  labelInput.placeholder = 'Syarikat / Keterangan';
+  labelInput.className = 'labelInputC form-input';
+  labelInput.style.minWidth = '120px';
+  labelInput.setAttribute('aria-label','nama syarikat');
+
+  const amountInput = document.createElement('input');
+  amountInput.type = 'text';
+  amountInput.value = data?.amount || '';
+  amountInput.placeholder = 'Contoh: 1400';
+  amountInput.className = 'amountInputC form-input';
+  amountInput.setAttribute('inputmode','numeric');
+  amountInput.setAttribute('aria-label','amaun');
+
+  const delLabel = document.createElement('label');
+  delLabel.style.display='flex';
+  delLabel.style.alignItems='center';
+  delLabel.style.gap='6px';
+
+  const delCheckbox = document.createElement('input');
+  delCheckbox.type = 'checkbox';
+  delCheckbox.className = 'delCheckboxC';
+  delCheckbox.title = 'Tandai untuk padam baris ini';
+  delCheckbox.checked = Boolean(data?.deleted);
+
+  const delText = document.createElement('span');
+  delText.innerText = 'Padam';
+  delText.style.color = 'var(--sub)';
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type='button';
+  removeBtn.innerText='✖';
+  removeBtn.title='Keluarkan baris';
+  removeBtn.style.background='#1a1a1a';
+  removeBtn.style.border='1px solid rgba(255,255,255,0.03)';
+  removeBtn.style.borderRadius='6px';
+  removeBtn.style.padding='6px 8px';
+  removeBtn.style.cursor='pointer';
+  removeBtn.style.color = 'var(--sub)';
+
+  delLabel.append(delCheckbox, delText);
+
+  wrapper.append(labelInput, amountInput, delLabel, removeBtn);
+
+  [labelInput, amountInput, delCheckbox].forEach(el=>el.addEventListener('input', saveStateC));
+  removeBtn.addEventListener('click', ()=>{
+    wrapper.remove();
+    saveStateC();
+  });
+
+  return wrapper;
+}
+
+function renderDefaultCompaniesC(){
+  c_companyList.innerHTML = '';
+  const saved = loadStateC();
+  if (saved?.companies && saved.companies.length){
+    saved.companies.forEach(c=>{
+      const row = createCompanyRowC(c);
+      c_companyList.appendChild(row);
+    });
+    c_name.value = saved.name || '';
+    c_recipient.value = saved.recipient || '';
+    c_ic.value = saved.ic || '';
+  } else {
+    const initialCompanies = [
+      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘾𝙚𝙥𝙖𝙩",
+      "𝙎𝙬𝙞𝙛𝙩 𝙇𝙤𝙖𝙣",
+      "𝙁𝙡𝙚𝙭𝙞 𝙇𝙤𝙖𝙣",
+      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝙋𝙖𝙨𝙩𝙞",
+      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘽𝙞𝙟𝙖𝙠",
+      "𝙂𝙊 𝙇𝙤𝙖𝙣",
+      "𝙀𝙭𝙥𝙧𝙚𝙨𝙨 𝙇𝙤𝙖𝙣"
+    ];
+    initialCompanies.forEach(name=>{
+      const row = createCompanyRowC({name, amount:''});
+      c_companyList.appendChild(row);
+    });
+  }
+}
+
+/* Company rows (D) */
+function createCompanyRowD(data){
+  const wrapper = document.createElement('div');
+  wrapper.className = 'company-row company-item-d';
+  wrapper.style.alignItems = 'center';
+
+  const labelInput = document.createElement('input');
+  labelInput.type = 'text';
+  labelInput.value = data?.name || '';
+  labelInput.placeholder = 'Syarikat / Keterangan';
+  labelInput.className = 'labelInputD form-input';
+  labelInput.style.minWidth = '120px';
+  labelInput.setAttribute('aria-label','nama syarikat');
+
+  const amountInput = document.createElement('input');
+  amountInput.type = 'text';
+  amountInput.value = data?.amount || '';
+  amountInput.placeholder = 'Contoh: 1400';
+  amountInput.className = 'amountInputD form-input';
+  amountInput.setAttribute('inputmode','numeric');
+  amountInput.setAttribute('aria-label','amaun');
+
+  const delLabel = document.createElement('label');
+  delLabel.style.display='flex';
+  delLabel.style.alignItems='center';
+  delLabel.style.gap='6px';
+
+  const delCheckbox = document.createElement('input');
+  delCheckbox.type = 'checkbox';
+  delCheckbox.className = 'delCheckboxD';
+  delCheckbox.title = 'Tandai untuk padam baris ini';
+  delCheckbox.checked = Boolean(data?.deleted);
+
+  const delText = document.createElement('span');
+  delText.innerText = 'Padam';
+  delText.style.color = 'var(--sub)';
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type='button';
+  removeBtn.innerText='✖';
+  removeBtn.title='Keluarkan baris';
+  removeBtn.style.background='#1a1a1a';
+  removeBtn.style.border='1px solid rgba(255,255,255,0.03)';
+  removeBtn.style.borderRadius='6px';
+  removeBtn.style.padding='6px 8px';
+  removeBtn.style.cursor='pointer';
+  removeBtn.style.color = 'var(--sub)';
+
+  delLabel.append(delCheckbox, delText);
+
+  wrapper.append(labelInput, amountInput, delLabel, removeBtn);
+
+  [labelInput, amountInput, delCheckbox].forEach(el=>el.addEventListener('input', saveStateD));
+  removeBtn.addEventListener('click', ()=>{
+    wrapper.remove();
+    saveStateD();
+  });
+
+  return wrapper;
+}
+
+function renderDefaultCompaniesD(){
+  d_companyList.innerHTML = '';
+  const saved = loadStateD();
+  if (saved?.companies && saved.companies.length){
+    saved.companies.forEach(c=>{
+      const row = createCompanyRowD(c);
+      d_companyList.appendChild(row);
+    });
+    d_name.value = saved.name || '';
+    d_recipient.value = saved.recipient || '';
+    d_ic.value = saved.ic || '';
+    // restore owner fields if saved
+    if (d_myPhone) d_myPhone.value = saved.myPhone || '';
+    if (d_myName) d_myName.value = saved.myName || '';
+  } else {
+    const initialCompanies = [
+      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘾𝙚𝙥𝙖𝙩",
+      "𝙎𝙬𝙞𝙛𝙩 𝙇𝙤𝙖𝙣",
+      "𝙁𝙡𝙚𝙭𝙞 𝙇𝙤𝙖𝙣",
+      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝙋𝙖𝙨𝙩𝙞",
+      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘽𝙞𝙟𝙖𝙠",
+      "𝙂𝙊 𝙇𝙤𝙖𝙣",
+      "𝙀𝙭𝙥𝙧𝙚𝙨𝙨 𝙇𝙤𝙖𝙣"
+    ];
+    initialCompanies.forEach(name=>{
+      const row = createCompanyRowD({name, amount:''});
+      d_companyList.appendChild(row);
+    });
+  }
+}
+
+/* Login handling & page navigation */
 passwordBtn.addEventListener('click', handlePassword);
 passwordInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') handlePassword(); });
 loginUser.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') handlePassword(); });
+
+let currentPageIndex = 0; // 0 = A (main), 1 = B, 2 = C, 3 = D
+const pages = [mainApp, templateB, templateC, templateD];
+
+function showPage(idx){
+  if (idx < 0) idx = 0;
+  if (idx > pages.length - 1) idx = pages.length - 1;
+  currentPageIndex = idx;
+  pages.forEach((p, i)=>{
+    if (!p) return;
+    if (i === idx) {
+      p.classList.remove('hidden');
+      p.setAttribute('aria-hidden','false');
+    } else {
+      p.classList.add('hidden');
+      p.setAttribute('aria-hidden','true');
+    }
+  });
+  // Update disabled state for all nav buttons
+  document.querySelectorAll('.nav-prev').forEach(btn=>{
+    if (currentPageIndex <= 0) btn.classList.add('disabled'); else btn.classList.remove('disabled');
+  });
+  document.querySelectorAll('.nav-next').forEach(btn=>{
+    if (currentPageIndex >= pages.length - 1) btn.classList.add('disabled'); else btn.classList.remove('disabled');
+  });
+  // Close import drawers when page changes
+  closeAllImportDrawers();
+}
+
+function navigate(delta){
+  showPage(currentPageIndex + delta);
+}
 
 async function handlePassword() {
   const username = (loginUser && loginUser.value) ? loginUser.value.trim() : '';
@@ -699,13 +1217,16 @@ async function handlePassword() {
     // OR when password hash matches existing PASSWORD_HASH_HEX (compatibility)
     if ((username === 'H' && input === '112233') || (h === PASSWORD_HASH_HEX)) {
       passwordScreen.classList.add('hidden');
-      mainApp.classList.remove('hidden');
-      mainApp.setAttribute('aria-hidden', 'false');
       renderDefaultCompanies();
       renderDefaultCompaniesB();
+      renderDefaultCompaniesC();
+      renderDefaultCompaniesD();
       restoreFields();
       restoreFieldsB();
+      restoreFieldsC();
+      restoreFieldsD();
       saveState();
+      showPage(0);
     } else {
       errorMsg.style.display = 'block';
       setTimeout(() => errorMsg.style.display = 'none', 3500);
@@ -716,7 +1237,7 @@ async function handlePassword() {
   }
 }
 
-/* Restore & build for A */
+/* Restore & build for A/B/C/D (same as before, with D now also restoring owner fields) */
 function restoreFields(){
   const saved = loadState();
   if (!saved) return;
@@ -724,8 +1245,6 @@ function restoreFields(){
   recipientEl.value = saved.recipient || '';
   icEl.value = saved.ic || '';
 }
-
-/* Restore & build for B */
 function restoreFieldsB(){
   const saved = loadStateB();
   if (!saved) return;
@@ -733,6 +1252,24 @@ function restoreFieldsB(){
   b_recipient.value = saved.recipient || '';
   b_ic.value = saved.ic || '';
 }
+function restoreFieldsC(){
+  const saved = loadStateC();
+  if (!saved) return;
+  c_name.value = saved.name || '';
+  c_recipient.value = saved.recipient || '';
+  c_ic.value = saved.ic || '';
+}
+function restoreFieldsD(){
+  const saved = loadStateD();
+  if (!saved) return;
+  d_name.value = saved.name || '';
+  d_recipient.value = saved.recipient || '';
+  d_ic.value = saved.ic || '';
+  if (d_myPhone) d_myPhone.value = saved.myPhone || '';
+  if (d_myName) d_myName.value = saved.myName || '';
+}
+
+/* Build template functions (A/B/C/D) - updated per your requests */
 
 /* Build template A */
 function buildTemplate(){
@@ -761,6 +1298,13 @@ function buildTemplate(){
 Link permohonan pinjaman Boss:  
 🔗 https://stagsmutual.com
 
+*DETAIL BAYARAN:*  
+${detailBayaran}
+
+👤 NAMA: ${recipient}  
+🆔 IC: ${ic}  
+💳 JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*
+
 ⚠️ HARI INI ADALAH TARIKH AKHIR untuk membuat bayaran pengesahan.
 
 *SOP Bayaran (Sebelum 3:00 PETANG hari ini):*  
@@ -772,19 +1316,12 @@ Link permohonan pinjaman Boss:
 Sebelum 5 minit nak transfer, SILA MINTA AKAUN daripada saya.  
 Jangan transfer ke akaun lain!
 
-*DETAIL BAYARAN:*  
-${detailBayaran}
-
-👤 NAMA: ${recipient}  
-🆔 IC: ${ic}  
-💳 JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*
-
 Sekiranya sudah bayar, sila hantar resit sekarang.  
 Terima kasih atas kerjasama Boss! 🙏`;
   return {output, total, meta:{recipient: recipient || null, ic: ic || null}};
 }
 
-/* Build template B (final text goes into outputB_blank) */
+/* Build template B */
 function buildTemplateBTextFromB(){
   const name = (b_name.value || '[NAME]').trim();
   const companyEls = Array.from(b_companyList.querySelectorAll('.company-item-b'));
@@ -833,6 +1370,114 @@ function buildTemplateBTextFromB(){
 
   return { text: lines.join('\n'), total, meta: { recipient: recipient || null, ic: ic || null } };
 }
+
+/* Build template C (modified earlier) */
+function buildTemplateC(){
+  const name = (c_name.value || '[NAME]').trim();
+  const companyEls = Array.from(c_companyList.querySelectorAll('.company-item-c'));
+  const included = [];
+  let total = 0;
+  companyEls.forEach((el)=>{
+    const deleted = el.querySelector('.delCheckboxC').checked;
+    if (deleted) return;
+    const cname = (el.querySelector('.labelInputC').value || '').trim();
+    const camtRaw = (el.querySelector('.amountInputC').value || '').trim();
+    if (!camtRaw) return;
+    const num = numberFromInput(camtRaw);
+    if (!isNaN(num)) total += num;
+    included.push({ name: cname || 'Syarikat', amountRaw: camtRaw });
+  });
+
+  const recipient = (c_recipient.value || '').trim();
+  const ic = (c_ic.value || '').trim();
+
+  const lines = [];
+  // First line changed as requested
+  lines.push(`Hi TUAN/PUAN, ${name} dari Syarikat STAGSMUTUAL（P.C 601）`);
+  lines.push('');
+  // Nama / IC / JUMLAH (no emojis, labels changed)
+  lines.push(`Nama: ${recipient}`);
+  lines.push(`IC: ${ic}`);
+  lines.push(`JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*`);
+  lines.push('');
+  // Move KES DETAIL below the Nama/IC section
+  lines.push(`*KES DETAIL:*`);
+  if (included.length) {
+    included.forEach(c => {
+      lines.push(`${c.name} – RM ${c.amountRaw}`);
+    });
+  } else {
+    lines.push(`(Tiada bayaran ditetapkan)`);
+  }
+  lines.push('');
+  // Replace the previous warning text with the new text requested
+  lines.push(`Sila Minta Akaun Dari Saya *SEBELUM 3:00 PETANG* → Transfer → Hantar Resit`);
+  lines.push('');
+  lines.push(`Sila Hantar Resit ASAP Untuk Proses Kelulusan Akhir Dan Jangan Transfer Ke Akaun Lain!`);
+  lines.push('');
+  lines.push(`Terima Kasih Boss 🙏`);
+
+  return { text: lines.join('\n'), total, meta: { recipient: recipient || null, ic: ic || null } };
+}
+
+/* --- Modified buildTemplateD per your request --- */
+function buildTemplateD(){
+  const name = (d_name.value || '[NAME]').trim();
+  const companyEls = Array.from(d_companyList.querySelectorAll('.company-item-d'));
+  const included = [];
+  let total = 0;
+  companyEls.forEach((el)=>{
+    const deleted = el.querySelector('.delCheckboxD').checked;
+    if (deleted) return;
+    const cname = (el.querySelector('.labelInputD').value || '').trim();
+    const camtRaw = (el.querySelector('.amountInputD').value || '').trim();
+    if (!camtRaw) return;
+    const num = numberFromInput(camtRaw);
+    if (!isNaN(num)) total += num;
+    included.push({ name: cname || 'Syarikat', amountRaw: camtRaw });
+  });
+
+  const recipient = (d_recipient.value || '').trim();
+  const ic = (d_ic.value || '').trim();
+  const myPhone = (d_myPhone && d_myPhone.value) ? d_myPhone.value.trim() : '';
+  const myName = (d_myName && d_myName.value) ? d_myName.value.trim() : '';
+
+  const lines = [];
+  // First line changed as requested
+  lines.push(`📞Hi Cik, Saya ${name} dari Syarikat STAGSMUTUAL（P.C 601）`);
+  lines.push('');
+  // PRODUCT BAYARAN (replacing detail)
+  lines.push(`*PRODUCT BAYARAN:*`);
+  if (included.length) {
+    included.forEach(c => {
+      lines.push(`${c.name} – RM ${c.amountRaw}`);
+    });
+  } else {
+    lines.push(`(Tiada bayaran ditetapkan)`);
+  }
+  lines.push('');
+  // Keep NAMA/IC/JUMLAH as requested
+  lines.push(`👤 NAMA: ${recipient}`);
+  lines.push(`🆔 IC: ${ic}`);
+  lines.push(`💳 JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*`);
+  lines.push('');
+  // Keep warnings
+  lines.push(`⚠️HARI INI SILA BAYAR *SEBELUM 3:00 PETANG* UNTUK AVOID CAJ`);
+  lines.push('');
+  lines.push(`⚠️SEBELUM 5MIN TRANSFER *MINTA ACC DARIPADA SAYA DAN IKUT SOP*`);
+  lines.push('');
+  // Additional owner contact block
+  lines.push('——————————————————');
+  lines.push(`PHONE NO : ${myPhone}`);
+  lines.push(`NAME : ${myName}`);
+  lines.push('');
+  lines.push(`⚠️BYR DEKAT ACC NI YA SILA MINTA ACC DENGAN ACC NI⚠️`);
+  lines.push('');
+  lines.push(`TERIMA KASIH🙏`);
+
+  return { text: lines.join('\n'), total, meta: { recipient: recipient || null, ic: ic || null, myPhone: myPhone || null, myName: myName || null } };
+}
+/* --- end modified buildTemplateD --- */
 
 /* Buttons - A */
 generateBtn.addEventListener('click', ()=>{
@@ -886,21 +1531,12 @@ downloadBtn.addEventListener('click', ()=>{
   URL.revokeObjectURL(url);
 });
 
-/* Buttons - B (final output placed in outputB_blank) */
+/* Buttons - B */
 b_generateBtn.addEventListener('click', ()=>{
   const { text, total, meta } = buildTemplateBTextFromB();
-
-  // Put final text into the blank area
-  if (outputB_blank) {
-    outputB_blank.textContent = text;
-  }
-  // Clear the small preview above
+  if (outputB_blank) outputB_blank.textContent = text;
   if (outputB) outputB.textContent = '';
-
-  // Update total display below blank
   totalDisplayB.textContent = 'Jumlah: RM' + Math.round(total);
-
-  // Save B state and history
   saveStateB();
   const now = new Date().toISOString();
   const entry = {
@@ -912,226 +1548,323 @@ b_generateBtn.addEventListener('click', ()=>{
   };
   saveHistoryEntry(entry);
 });
-
 b_copyBtn.addEventListener('click', async ()=>{
   const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
-  try {
-    await navigator.clipboard.writeText(text);
-    alert('Template B telah disalin ke clipboard!');
-  } catch(e) {
-    console.error(e);
-    alert('Gagal salin — cuba guna penyemak imbas yang menyokong clipboard API.');
-  }
+  try { await navigator.clipboard.writeText(text); alert('Template B telah disalin ke clipboard!'); }
+  catch(e){ alert('Gagal salin — cuba penyemak imbas yang menyokong clipboard API.'); }
 });
-
 b_waBtn.addEventListener('click', ()=>{
   const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
-  const encoded = encodeURIComponent(text);
-  const url = `https://wa.me/?text=${encoded}`;
-  window.open(url, '_blank');
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 });
-
 b_downloadBtn.addEventListener('click', ()=>{
   const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'pinjaman-template-b.txt';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pinjaman-template-b.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+
+/* Buttons - C */
+c_generateBtn.addEventListener('click', ()=>{ const { text, total, meta } = buildTemplateC(); if (outputC_blank) outputC_blank.textContent = text; if (outputC) outputC.textContent = ''; totalDisplayC.textContent = 'Jumlah: RM' + Math.round(total); saveStateC(); const now = new Date().toISOString(); saveHistoryEntry({output:text,total:Math.round(total),meta,saved_at:now,template:'C'}); });
+c_copyBtn.addEventListener('click', async ()=>{ const text = (outputC_blank && outputC_blank.textContent) ? outputC_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } try { await navigator.clipboard.writeText(text); alert('Template C telah disalin ke clipboard!'); } catch(e){ alert('Gagal salin — cuba penyemak imbas yang menyokong clipboard API.'); } });
+c_waBtn.addEventListener('click', ()=>{ const text = (outputC_blank && outputC_blank.textContent) ? outputC_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'); });
+c_downloadBtn.addEventListener('click', ()=>{ const text = (outputC_blank && outputC_blank.textContent) ? outputC_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } const blob = new Blob([text], {type:'text/plain;charset=utf-8'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pinjaman-template-c.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
+
+/* Buttons - D */
+d_generateBtn.addEventListener('click', ()=>{
+  const { text, total, meta } = buildTemplateD();
+  if (outputD_blank) outputD_blank.textContent = text;
+  if (outputD) outputD.textContent = '';
+  totalDisplayD.textContent = 'Jumlah: RM' + Math.round(total);
+  saveStateD();
+  const now = new Date().toISOString();
+  const entry = {
+    output: text,
+    total: Math.round(total),
+    meta,
+    saved_at: now,
+    template: 'D'
+  };
+  saveHistoryEntry(entry);
+});
+d_copyBtn.addEventListener('click', async ()=>{
+  const text = (outputD_blank && outputD_blank.textContent) ? outputD_blank.textContent : '';
+  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
+  try { await navigator.clipboard.writeText(text); alert('Template D telah disalin ke clipboard!'); }
+  catch(e){ alert('Gagal salin — cuba penyemak imbas yang menyokong clipboard API.'); }
+});
+d_waBtn.addEventListener('click', ()=>{
+  const text = (outputD_blank && outputD_blank.textContent) ? outputD_blank.textContent : '';
+  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+});
+d_downloadBtn.addEventListener('click', ()=>{
+  const text = (outputD_blank && outputD_blank.textContent) ? outputD_blank.textContent : '';
+  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pinjaman-template-d.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 });
 
 /* History UI */
-function openHistory(){
-  renderHistoryList();
-  historyModal.style.display = 'flex';
-  historyModal.setAttribute('aria-hidden','false');
-}
-function closeHistory(){
-  historyModal.style.display = 'none';
-  historyModal.setAttribute('aria-hidden','true');
-}
+function openHistory(){ renderHistoryList(); historyModal.style.display = 'flex'; historyModal.setAttribute('aria-hidden','false'); }
+function closeHistory(){ historyModal.style.display = 'none'; historyModal.setAttribute('aria-hidden','true'); }
 
 function renderHistoryList(){
   const arr = loadHistory();
   histListEl.innerHTML = '';
-  if (!arr || arr.length === 0){
-    histEmptyEl.style.display = 'block';
-    return;
-  }
+  if (!arr || arr.length === 0){ histEmptyEl.style.display = 'block'; return; }
   histEmptyEl.style.display = 'none';
   arr.forEach((it, idx) => {
-    const item = document.createElement('div');
-    item.className = 'hist-item';
-
-    const meta = document.createElement('div');
-    meta.className = 'hist-meta';
-    const title = document.createElement('div');
-    title.style.color = 'var(--text)';
-    title.style.fontWeight = '600';
+    const item = document.createElement('div'); item.className = 'hist-item';
+    const meta = document.createElement('div'); meta.className = 'hist-meta';
+    const title = document.createElement('div'); title.style.color = 'var(--text)'; title.style.fontWeight = '600';
     const summary = (it.output || '').split('\n')[0] || '(kosong)';
     title.innerText = summary.length > 80 ? summary.slice(0,77) + '...' : summary;
-    const sub = document.createElement('div');
-    sub.className = 'tiny';
+    const sub = document.createElement('div'); sub.className = 'tiny';
     sub.innerText = `${fmtTime(it.saved_at)} — Jumlah: RM${it.total || 0} — Templat: ${it.template || 'A'}`;
-    meta.appendChild(title);
-    meta.appendChild(sub);
-
-    const actions = document.createElement('div');
-    actions.className = 'hist-actions';
-
-    const viewBtn = document.createElement('button');
-    viewBtn.className = 'ghost';
-    viewBtn.innerText = 'View';
+    meta.appendChild(title); meta.appendChild(sub);
+    const actions = document.createElement('div'); actions.className = 'hist-actions';
+    const viewBtn = document.createElement('button'); viewBtn.className = 'ghost'; viewBtn.innerText = 'View';
     viewBtn.addEventListener('click', ()=>{
-      if (it.template === 'B') {
-        openTemplateB();
-        if (outputB_blank) outputB_blank.textContent = it.output || '';
-        totalDisplayB.textContent = 'Jumlah: RM' + Math.round(it.total || 0);
-      } else {
-        openMain();
-        outputEl.textContent = it.output || '';
-        totalDisplay.textContent = 'Jumlah: RM' + Math.round(it.total || 0);
-      }
-      closeHistory();
+      if (it.template === 'B') { showPage(1); if (outputB_blank) outputB_blank.textContent = it.output || ''; totalDisplayB.textContent = 'Jumlah: RM' + Math.round(it.total || 0); }
+      else if (it.template === 'C') { showPage(2); if (outputC_blank) outputC_blank.textContent = it.output || ''; totalDisplayC.textContent = 'Jumlah: RM' + Math.round(it.total || 0); }
+      else if (it.template === 'D') { showPage(3); if (outputD_blank) outputD_blank.textContent = it.output || ''; totalDisplayD.textContent = 'Jumlah: RM' + Math.round(it.total || 0); }
+      else { showPage(0); outputEl.textContent = it.output || ''; totalDisplay.textContent = 'Jumlah: RM' + Math.round(it.total || 0); }
     });
-
-    const copyBtn = document.createElement('button');
-    copyBtn.className = 'alt';
-    copyBtn.innerText = 'Copy';
-    copyBtn.addEventListener('click', async ()=>{
-      try {
-        await navigator.clipboard.writeText(it.output || '');
-        alert('Sejarah disalin ke clipboard!');
-      } catch(e) {
-        alert('Gagal salin sejarah.');
-      }
-    });
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'alt';
-    delBtn.innerText = 'Delete';
-    delBtn.addEventListener('click', ()=>{
-      if (!confirm('Padam item sejarah ini?')) return;
-      deleteHistoryAt(idx);
-      renderHistoryList();
-    });
-
-    actions.appendChild(viewBtn);
-    actions.appendChild(copyBtn);
-    actions.appendChild(delBtn);
-
-    item.appendChild(meta);
-    item.appendChild(actions);
-
-    histListEl.appendChild(item);
+    const copyBtn = document.createElement('button'); copyBtn.className = 'alt'; copyBtn.innerText = 'Copy';
+    copyBtn.addEventListener('click', async ()=>{ try { await navigator.clipboard.writeText(it.output || ''); alert('Sejarah disalin ke clipboard!'); } catch(e) { alert('Gagal salin sejarah.'); } });
+    const delBtn = document.createElement('button'); delBtn.className = 'alt'; delBtn.innerText = 'Del';
+    delBtn.addEventListener('click', ()=>{ if (!confirm('Padam rekod ini?')) return; deleteHistoryAt(idx); renderHistoryList(); });
+    actions.appendChild(viewBtn); actions.appendChild(copyBtn); actions.appendChild(delBtn);
+    item.appendChild(meta); item.appendChild(actions); histListEl.appendChild(item);
   });
 }
 
+closeHistoryBtn.addEventListener('click', closeHistory);
 historyBtn.addEventListener('click', openHistory);
 b_historyBtn.addEventListener('click', openHistory);
-closeHistoryBtn.addEventListener('click', closeHistory);
-clearHistoryBtn.addEventListener('click', ()=>{
-  if (!confirm('Padam semua sejarah?')) return;
-  clearHistory();
-  renderHistoryList();
-});
+c_historyBtn?.addEventListener('click', openHistory);
+d_historyBtn?.addEventListener('click', openHistory);
 exportHistoryBtn.addEventListener('click', ()=>{
   const arr = loadHistory();
-  const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), device_id: getDeviceId(), data: arr }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(arr, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'pjm_history_export.json';
+  a.download = 'pjm_history.json';
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
 });
-
-/* Add / Reset (A) */
-addCompanyBtn.addEventListener('click', () => {
-  companyListEl.appendChild(createCompanyRow({ name: '', amount: '' }));
-  saveState();
-});
-resetCompaniesBtn.addEventListener('click', () => {
-  if (!confirm('Reset semua baris ke nilai awal?')) return;
-  localStorage.removeItem(LS_KEY);
-  renderDefaultCompanies();
-  saveState();
+clearHistoryBtn.addEventListener('click', ()=>{
+  if (!confirm('Clear all history?')) return;
+  clearHistory();
+  renderHistoryList();
 });
 
-/* Add / Reset (B) */
-b_addCompanyBtn.addEventListener('click', () => {
-  b_companyList.appendChild(createCompanyRowB({ name: '', amount: '' }));
-  saveStateB();
-});
-b_resetCompaniesBtn.addEventListener('click', () => {
-  if (!confirm('Reset semua baris B ke nilai awal?')) return;
-  localStorage.removeItem(LS_KEY_B);
-  renderDefaultCompaniesB();
-  saveStateB();
-});
+/* Add / reset company rows (A) */
+addCompanyBtn.addEventListener('click', ()=>{ const r = createCompanyRow({}); companyListEl.appendChild(r); saveState(); });
+resetCompaniesBtn.addEventListener('click', ()=>{ if (!confirm('Reset semua baris kepada default?')) return; renderDefaultCompanies(); saveState(); });
 
-/* Save on change */
-[nameEl, recipientEl, icEl].forEach(el=>el.addEventListener('input', saveState));
-companyListEl.addEventListener('input', saveState);
-[b_name, b_recipient, b_ic].forEach(el=>el.addEventListener('input', saveStateB));
-b_companyList.addEventListener('input', saveStateB);
+/* Add / reset company rows (B) */
+b_addCompanyBtn.addEventListener('click', ()=>{ const r = createCompanyRowB({}); b_companyList.appendChild(r); saveStateB(); });
+b_resetCompaniesBtn.addEventListener('click', ()=>{ if (!confirm('Reset semua baris (B) kepada default?')) return; renderDefaultCompaniesB(); saveStateB(); });
 
-/* Template B: open / back / import from A */
-function openTemplateB(){
-  templateB.classList.remove('hidden');
-  templateB.setAttribute('aria-hidden','false');
-  mainApp.classList.add('hidden');
-  mainApp.setAttribute('aria-hidden','true');
-}
-function openMain(){
-  templateB.classList.add('hidden');
-  templateB.setAttribute('aria-hidden','true');
-  mainApp.classList.remove('hidden');
-  mainApp.setAttribute('aria-hidden','false');
-}
+/* Add / reset company rows (C) */
+c_addCompanyBtn.addEventListener('click', ()=>{ const r = createCompanyRowC({}); c_companyList.appendChild(r); saveStateC(); });
+c_resetCompaniesBtn.addEventListener('click', ()=>{ if (!confirm('Reset semua baris (C) kepada default?')) return; renderDefaultCompaniesC(); saveStateC(); });
 
-openTemplateBBtn.addEventListener('click', ()=>{
-  renderDefaultCompaniesB();
-  restoreFieldsB();
-  openTemplateB();
-});
+/* Add / reset company rows (D) */
+d_addCompanyBtn.addEventListener('click', ()=>{ const r = createCompanyRowD({}); d_companyList.appendChild(r); saveStateD(); });
+d_resetCompaniesBtn.addEventListener('click', ()=>{ if (!confirm('Reset semua baris (D) kepada default?')) return; renderDefaultCompaniesD(); saveStateD(); });
 
-b_backBtn.addEventListener('click', ()=>{
-  openMain();
-});
+/* Generic import helper: copy companies + fields from source page to target page.
+   srcPage and targetPage are 'A'|'B'|'C'|'D' */
+function importFromPage(srcPage, targetPage){
+  const mapping = {
+    A: { listEl: companyListEl, nameEl: nameEl, recipientEl: recipientEl, icEl: icEl, myPhoneEl: null, myNameEl: null },
+    B: { listEl: b_companyList, nameEl: b_name, recipientEl: b_recipient, icEl: b_ic, myPhoneEl: null, myNameEl: null },
+    C: { listEl: c_companyList, nameEl: c_name, recipientEl: c_recipient, icEl: c_ic, myPhoneEl: null, myNameEl: null },
+    D: { listEl: d_companyList, nameEl: d_name, recipientEl: d_recipient, icEl: d_ic, myPhoneEl: d_myPhone, myNameEl: d_myName }
+  };
+  const src = mapping[srcPage];
+  const tgt = mapping[targetPage];
+  if (!src || !tgt) return;
 
-importFromABtn.addEventListener('click', ()=>{
-  b_name.value = nameEl.value || '';
-  b_recipient.value = recipientEl.value || '';
-  b_ic.value = icEl.value || '';
-
-  b_companyList.innerHTML = '';
-  const companyEls = Array.from(companyListEl.querySelectorAll('.company-item'));
-  companyEls.forEach((el)=>{
-    const cname = el.querySelector('.labelInput').value || '';
-    const camt = el.querySelector('.amountInput').value || '';
-    const deleted = el.querySelector('.delCheckbox').checked;
-    b_companyList.appendChild(createCompanyRowB({ name: cname, amount: camt, deleted }));
+  // read companies from source
+  const companyItems = Array.from(src.listEl.querySelectorAll('.company-row'));
+  const data = companyItems.map(el=>{
+    const inputs = el.querySelectorAll('input[type="text"]');
+    let nameVal = '';
+    let amtVal = '';
+    if (inputs.length >= 2) { nameVal = inputs[0].value || ''; amtVal = inputs[1].value || ''; }
+    else if (inputs.length === 1) { nameVal = inputs[0].value || ''; amtVal = ''; }
+    return { name: (nameVal || '').trim(), amount: (amtVal || '').trim(), deleted: !!el.querySelector('input[type="checkbox"]') && el.querySelector('input[type="checkbox"]').checked };
   });
-  const current = b_companyList.querySelectorAll('.company-item-b').length;
-  for (let i = current; i < 7; i++){
-    b_companyList.appendChild(createCompanyRowB({ name:'', amount:'' }));
-  }
-  saveStateB();
-  alert('Data berjaya diimport dari Halaman A ke Halaman B.');
+
+  // clear target companies and create rows using target creators
+  tgt.listEl.innerHTML = '';
+  data.forEach(d=>{
+    if (targetPage === 'A') {
+      const r = createCompanyRow({ name: d.name, amount: d.amount, deleted: d.deleted });
+      tgt.listEl.appendChild(r);
+    } else if (targetPage === 'B') {
+      const r = createCompanyRowB({ name: d.name, amount: d.amount, deleted: d.deleted });
+      tgt.listEl.appendChild(r);
+    } else if (targetPage === 'C') {
+      const r = createCompanyRowC({ name: d.name, amount: d.amount, deleted: d.deleted });
+      tgt.listEl.appendChild(r);
+    } else if (targetPage === 'D') {
+      const r = createCompanyRowD({ name: d.name, amount: d.amount, deleted: d.deleted });
+      tgt.listEl.appendChild(r);
+    }
+  });
+
+  // copy top-level fields
+  if (src.nameEl && tgt.nameEl) tgt.nameEl.value = src.nameEl.value || '';
+  if (src.recipientEl && tgt.recipientEl) tgt.recipientEl.value = src.recipientEl.value || '';
+  if (src.icEl && tgt.icEl) tgt.icEl.value = src.icEl.value || '';
+  // for D: copy owner fields if source has them
+  if (tgt.myPhoneEl) tgt.myPhoneEl.value = src.myPhoneEl ? (src.myPhoneEl.value || '') : '';
+  if (tgt.myNameEl) tgt.myNameEl.value = src.myNameEl ? (src.myNameEl.value || '') : '';
+
+  // save target state
+  if (targetPage === 'A') saveState();
+  if (targetPage === 'B') saveStateB();
+  if (targetPage === 'C') saveStateC();
+  if (targetPage === 'D') saveStateD();
+}
+
+/* Hook import drawer buttons (use delegation for the buttons inside drawers) */
+function wireImportDrawer(drawerEl, toggleBtn){
+  // toggle handler
+  toggleBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    const open = drawerEl.classList.toggle('open');
+    toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    drawerEl.setAttribute('aria-hidden', open ? 'false' : 'true');
+  });
+  // click on items
+  drawerEl.addEventListener('click', (ev)=>{
+    const btn = ev.target.closest('button[data-src][data-target]');
+    if (!btn) return;
+    const src = btn.getAttribute('data-src');
+    const tgt = btn.getAttribute('data-target');
+    importFromPage(src, tgt);
+    // close drawer after import
+    drawerEl.classList.remove('open');
+    toggleBtn.setAttribute('aria-expanded','false');
+    drawerEl.setAttribute('aria-hidden','true');
+    ev.stopPropagation();
+  });
+}
+
+/* close all drawers utility */
+function closeAllImportDrawers(){
+  [importDrawerA, importDrawerB, importDrawerC, importDrawerD].forEach(d=>{
+    if (!d) return;
+    d.classList.remove('open');
+    d.setAttribute('aria-hidden','true');
+  });
+  [importToggleA, importToggleB, importToggleC, importToggleD].forEach(t=>{
+    if (!t) return;
+    t.setAttribute('aria-expanded','false');
+  });
+}
+
+/* click outside to close drawers */
+document.addEventListener('click', (e)=>{
+  const path = e.composedPath ? e.composedPath() : (e.path || []);
+  const isInsideAny = path.some(el => el && el.classList && el.classList.contains && (el.classList.contains('import-wrap') || el.classList.contains('import-drawer')));
+  if (!isInsideAny) closeAllImportDrawers();
 });
 
-/* End of script */
+/* wire up drawers */
+if (importDrawerA && importToggleA) wireImportDrawer(importDrawerA, importToggleA);
+if (importDrawerB && importToggleB) wireImportDrawer(importDrawerB, importToggleB);
+if (importDrawerC && importToggleC) wireImportDrawer(importDrawerC, importToggleC);
+if (importDrawerD && importToggleD) wireImportDrawer(importDrawerD, importToggleD);
+
+/* Back buttons in templates simply go back to main (A) */
+b_backBtn.addEventListener('click', ()=> showPage(0));
+c_backBtn.addEventListener('click', ()=> showPage(0));
+d_backBtn.addEventListener('click', ()=> showPage(0));
+
+/* Attach nav arrow handlers to all .nav-prev / .nav-next buttons (these exist on each page) */
+document.querySelectorAll('.nav-prev').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if (btn.classList.contains('disabled')) return;
+    navigate(-1);
+  });
+});
+document.querySelectorAll('.nav-next').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if (btn.classList.contains('disabled')) return;
+    navigate(1);
+  });
+});
+
+/* auto save states when inputs change */
+[nameEl, recipientEl, icEl].forEach(el=>el && el.addEventListener('input', saveState));
+[b_name, b_recipient, b_ic].forEach(el=>el && el.addEventListener('input', saveStateB));
+[c_name, c_recipient, c_ic].forEach(el=>el && el.addEventListener('input', saveStateC));
+[d_name, d_recipient, d_ic].forEach(el=>el && el.addEventListener('input', saveStateD));
+if (d_myPhone) d_myPhone.addEventListener('input', saveStateD);
+if (d_myName) d_myName.addEventListener('input', saveStateD);
+
+/* --- NEW: global Enter handler to auto-generate template for current page --- */
+/* When password screen is visible, Enter still triggers login (handled earlier). Once logged in,
+   pressing Enter anywhere (inputs/buttons) will trigger the generate action for the active page.
+   We prevent default to avoid accidental form submissions. */
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  // If password screen is visible, allow existing password handlers to run (do not intercept)
+  if (passwordScreen && !passwordScreen.classList.contains('hidden')) return;
+  // Do not trigger when focus is inside a dialog contenteditable or textarea where Enter may be desired.
+  const active = document.activeElement;
+  if (active && (active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
+  // If user is typing in an input field, allow Enter to insert (but many inputs submit) - we still follow earlier behavior and trigger generate.
+  e.preventDefault();
+  switch (currentPageIndex) {
+    case 0: if (generateBtn) generateBtn.click(); break;
+    case 1: if (b_generateBtn) b_generateBtn.click(); break;
+    case 2: if (c_generateBtn) c_generateBtn.click(); break;
+    case 3: if (d_generateBtn) d_generateBtn.click(); break;
+    default: break;
+  }
+});
+/* --- end Enter handler --- */
+
+/* --- NEW: Left/Right arrow navigation for all pages --- */
+/* Left arrow navigates previous page, Right arrow navigates next page.
+   To avoid interfering with text editing, we ignore arrow navigation when focus is inside
+   an input, textarea, or contenteditable element. */
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  // If password screen is visible, do nothing (keep login behavior)
+  if (passwordScreen && !passwordScreen.classList.contains('hidden')) return;
+  const active = document.activeElement;
+  // If typing in a text field or textarea or contenteditable, do not navigate
+  if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
+  // Prevent default scrolling/paging
+  e.preventDefault();
+  if (e.key === 'ArrowLeft') {
+    navigate(-1);
+  } else if (e.key === 'ArrowRight') {
+    navigate(1);
+  }
+});
+/* --- end arrow navigation handler --- */
+
+/* initial render - keep behind password screen until login */
+renderDefaultCompanies();
+renderDefaultCompaniesB();
+renderDefaultCompaniesC();
+renderDefaultCompaniesD();
+
 </script>
 </body>
 </html>
-
