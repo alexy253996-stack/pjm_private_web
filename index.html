@@ -1665,21 +1665,97 @@ clearHistoryBtn.addEventListener('click', ()=>{
   renderHistoryList();
 });
 
-/* Add / reset company rows (A) */
-addCompanyBtn.addEventListener('click', ()=>{ const r = createCompanyRow({}); companyListEl.appendChild(r); saveState(); });
-resetCompaniesBtn.addEventListener('click', ()=>{ renderDefaultCompanies(); saveState(); });
+/* ---------- 新的 Add / Reset 公司行逻辑（替换原有同名段） ---------- */
 
-/* Add / reset company rows (B) */
-b_addCompanyBtn.addEventListener('click', ()=>{ const r = createCompanyRowB({}); b_companyList.appendChild(r); saveStateB(); });
-b_resetCompaniesBtn.addEventListener('click', ()=>{ renderDefaultCompaniesB(); saveStateB(); });
+/* 默认 7 个公司名称（Reset 将恢复为这些） */
+const DEFAULT_COMPANY_NAMES = [
+  "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘾𝙚𝙥𝙖𝙩",
+  "𝙎𝙬𝙞𝙛𝙩 𝙇𝙤𝙖𝙣",
+  "𝙁𝙡𝙚𝙭𝙞 𝙇𝙤𝙖𝙣",
+  "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝙋𝙖𝙨𝙩𝙞",
+  "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘽𝙞𝙟𝙖𝙠",
+  "𝙂𝙊 𝙇𝙤𝙖𝙣",
+  "𝙀𝙭𝙥𝙧𝙚𝙨𝙨 𝙇𝙤𝙖𝙣"
+];
 
-/* Add / reset company rows (C) */
-c_addCompanyBtn.addEventListener('click', ()=>{ const r = createCompanyRowC({}); c_companyList.appendChild(r); saveStateC(); });
-c_resetCompaniesBtn.addEventListener('click', ()=>{ renderDefaultCompaniesC(); saveStateC(); });
+/**
+ * 完全重置到默认 7 行：
+ * - 删除列表内所有现有行
+ * - 重新创建 7 行（名称来自 DEFAULT_COMPANY_NAMES，金额置空）
+ * - 调用对应的 saveFn 保存状态
+ *
+ * 参数：
+ * listEl - 容器元素（例如 companyListEl, b_companyList 等）
+ * createRowFn - 对应页面的行创建函数（createCompanyRow / createCompanyRowB / ...）
+ * saveFn - 对应页面的保存函数（saveState / saveStateB / ...）
+ */
+function fullResetToDefaultSeven(listEl, createRowFn, saveFn){
+  // 清空容器（移除所有行）
+  listEl.innerHTML = '';
+  // 按默认 7 个名称重建行（金额为空）
+  DEFAULT_COMPANY_NAMES.forEach(name => {
+    const row = createRowFn({ name, amount: '' });
+    listEl.appendChild(row);
+  });
+  // 保存（尝试调用）
+  try { saveFn(); } catch(e) { console.warn('保存 state 失败', e); }
+}
 
-/* Add / reset company rows (D) */
-d_addCompanyBtn.addEventListener('click', ()=>{ const r = createCompanyRowD({}); d_companyList.appendChild(r); saveStateD(); });
-d_resetCompaniesBtn.addEventListener('click', ()=>{ renderDefaultCompaniesD(); saveStateD(); });
+/* --- A 页面：添加 / 完全重置 --- */
+addCompanyBtn.removeEventListener?.('click', ()=>{}); // no-op safety
+addCompanyBtn.addEventListener('click', ()=>{
+  const r = createCompanyRow({});
+  companyListEl.appendChild(r);
+  saveState();
+});
+// 将 Reset 绑定为“完全重置为 7 行默认名称（删除额外行）”
+resetCompaniesBtn.replaceWith(resetCompaniesBtn.cloneNode(true));
+document.getElementById('resetCompaniesBtn').addEventListener('click', ()=>{
+  // （可选）如果希望提示确认，请取消下一行注释
+  // if (!confirm('确定要重置并删除第 7 行以外的所有行吗？')) return;
+  fullResetToDefaultSeven(companyListEl, createCompanyRow, saveState);
+});
+
+/* --- B 页面：添加 / 完全重置 --- */
+b_addCompanyBtn.removeEventListener?.('click', ()=>{});
+b_addCompanyBtn.addEventListener('click', ()=>{
+  const r = createCompanyRowB({});
+  b_companyList.appendChild(r);
+  saveStateB();
+});
+b_resetCompaniesBtn.replaceWith(b_resetCompaniesBtn.cloneNode(true));
+document.getElementById('b_resetCompaniesBtn').addEventListener('click', ()=>{
+  // if (!confirm('确定要重置并删除第 7 行以外的所有行吗？')) return;
+  fullResetToDefaultSeven(b_companyList, createCompanyRowB, saveStateB);
+});
+
+/* --- C 页面：添加 / 完全重置 --- */
+c_addCompanyBtn.removeEventListener?.('click', ()=>{});
+c_addCompanyBtn.addEventListener('click', ()=>{
+  const r = createCompanyRowC({});
+  c_companyList.appendChild(r);
+  saveStateC();
+});
+c_resetCompaniesBtn.replaceWith(c_resetCompaniesBtn.cloneNode(true));
+document.getElementById('c_resetCompaniesBtn').addEventListener('click', ()=>{
+  // if (!confirm('确定要重置并删除第 7 行以外的所有行吗？')) return;
+  fullResetToDefaultSeven(c_companyList, createCompanyRowC, saveStateC);
+});
+
+/* --- D 页面：添加 / 完全重置 --- */
+d_addCompanyBtn.removeEventListener?.('click', ()=>{});
+d_addCompanyBtn.addEventListener('click', ()=>{
+  const r = createCompanyRowD({});
+  d_companyList.appendChild(r);
+  saveStateD();
+});
+d_resetCompaniesBtn.replaceWith(d_resetCompaniesBtn.cloneNode(true));
+document.getElementById('d_resetCompaniesBtn').addEventListener('click', ()=>{
+  // if (!confirm('确定要重置并删除第 7 行以外的所有行吗？')) return;
+  fullResetToDefaultSeven(d_companyList, createCompanyRowD, saveStateD);
+});
+
+/* ---------- End of replacement block ---------- */
   
 /* Generic import helper: copy companies + fields from source page to target page.
    srcPage and targetPage are 'A'|'B'|'C'|'D' */
