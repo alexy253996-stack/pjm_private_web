@@ -1667,20 +1667,20 @@ clearHistoryBtn.addEventListener('click', ()=>{
 
 /* Add / reset company rows (A) */
 addCompanyBtn.addEventListener('click', ()=>{ const r = createCompanyRow({}); companyListEl.appendChild(r); saveState(); });
-resetCompaniesBtn.addEventListener('click', ()=>{ if (!confirm('Reset semua baris kepada default?')) return; renderDefaultCompanies(); saveState(); });
+resetCompaniesBtn.addEventListener('click', ()=>{ renderDefaultCompanies(); saveState(); });
 
 /* Add / reset company rows (B) */
 b_addCompanyBtn.addEventListener('click', ()=>{ const r = createCompanyRowB({}); b_companyList.appendChild(r); saveStateB(); });
-b_resetCompaniesBtn.addEventListener('click', ()=>{ if (!confirm('Reset semua baris (B) kepada default?')) return; renderDefaultCompaniesB(); saveStateB(); });
+b_resetCompaniesBtn.addEventListener('click', ()=>{ renderDefaultCompaniesB(); saveStateB(); });
 
 /* Add / reset company rows (C) */
 c_addCompanyBtn.addEventListener('click', ()=>{ const r = createCompanyRowC({}); c_companyList.appendChild(r); saveStateC(); });
-c_resetCompaniesBtn.addEventListener('click', ()=>{ if (!confirm('Reset semua baris (C) kepada default?')) return; renderDefaultCompaniesC(); saveStateC(); });
+c_resetCompaniesBtn.addEventListener('click', ()=>{ renderDefaultCompaniesC(); saveStateC(); });
 
 /* Add / reset company rows (D) */
 d_addCompanyBtn.addEventListener('click', ()=>{ const r = createCompanyRowD({}); d_companyList.appendChild(r); saveStateD(); });
-d_resetCompaniesBtn.addEventListener('click', ()=>{ if (!confirm('Reset semua baris (D) kepada default?')) return; renderDefaultCompaniesD(); saveStateD(); });
-
+d_resetCompaniesBtn.addEventListener('click', ()=>{ renderDefaultCompaniesD(); saveStateD(); });
+  
 /* Generic import helper: copy companies + fields from source page to target page.
    srcPage and targetPage are 'A'|'B'|'C'|'D' */
 function importFromPage(srcPage, targetPage){
