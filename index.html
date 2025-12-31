@@ -629,6 +629,10 @@ const passwordBtn = document.getElementById('passwordBtn');
 const errorMsg = document.getElementById('errorMsg');
 const passwordScreen = document.getElementById('passwordScreen');
 
+/* Captcha DOM (new) */
+const captchaInput = document.getElementById('captchaInput');
+const captchaBox = document.getElementById('captchaBox');
+
 /* 其余 DOM 元素 */
 const mainApp = document.getElementById('mainApp');
 
@@ -1282,6 +1286,30 @@ function renderDefaultCompaniesD(){
   }
 }
 
+/* Captcha generation & handling (client-side UI) */
+let currentCaptcha = '';
+function makeRandomCaptcha(length = 4) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // avoid confusing chars
+  let out = '';
+  for (let i = 0; i < length; i++) {
+    out += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return out;
+}
+function formatCaptchaForDisplay(code) {
+  return code.split('').join(' ');
+}
+function generateCaptcha() {
+  currentCaptcha = makeRandomCaptcha(4);
+  if (captchaBox) captchaBox.textContent = formatCaptchaForDisplay(currentCaptcha);
+  if (captchaInput) captchaInput.value = '';
+}
+if (captchaBox) {
+  captchaBox.addEventListener('click', ()=> generateCaptcha());
+}
+// generate initial captcha
+generateCaptcha();
+
 /* Login handling & page navigation */
 passwordBtn.addEventListener('click', handlePassword);
 passwordInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') handlePassword(); });
@@ -1323,6 +1351,30 @@ function navigate(delta){
 async function handlePassword() {
   const username = (loginUser && loginUser.value) ? loginUser.value.trim() : '';
   const input = passwordInput.value || '';
+
+  // --- Captcha validation (client-side) ---
+  try {
+    const entered = (captchaInput && captchaInput.value) ? captchaInput.value.toString().trim().replace(/\s+/g,'').toUpperCase() : '';
+    if (!entered || entered !== (currentCaptcha || '')) {
+      if (errorMsg) {
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = '验证码错误，请重试。';
+        setTimeout(() => { if (errorMsg) errorMsg.style.display = 'none'; }, 3500);
+      }
+      generateCaptcha();
+      return;
+    }
+  } catch (e) {
+    // If something goes wrong in captcha check, refresh and block login
+    generateCaptcha();
+    if (errorMsg) {
+      errorMsg.style.display = 'block';
+      errorMsg.textContent = '验证码校验失败，请重试。';
+      setTimeout(() => { if (errorMsg) errorMsg.style.display = 'none'; }, 3500);
+    }
+    return;
+  }
+
   try {
     const h = await sha256Hex(input);
     // allow login when username is 'H' and password is exactly '112233'
@@ -1353,10 +1405,13 @@ async function handlePassword() {
       // inline error message (do not block with alert)
       if (errorMsg) {
         errorMsg.style.display = 'block';
+        errorMsg.textContent = 'Pengguna atau kata laluan salah!';
         setTimeout(() => errorMsg.style.display = 'none', 3500);
       } else {
         alert('Pengguna atau kata laluan salah!');
       }
+      // Refresh captcha on failed auth
+      generateCaptcha();
     }
   } catch (e) {
     console.warn('sha256 failed:', e);
@@ -1383,10 +1438,12 @@ async function handlePassword() {
     } else {
       if (errorMsg) {
         errorMsg.style.display = 'block';
+        errorMsg.textContent = 'Pengguna atau kata laluan salah!';
         setTimeout(() => errorMsg.style.display = 'none', 3500);
       } else {
         alert('Pengguna atau kata laluan salah!');
       }
+      generateCaptcha();
     }
   }
 }
