@@ -321,7 +321,7 @@
         <div id="errorMsg" class="error-inline">Pengguna atau kata laluan salah!</div>
 
         <div style="margin-top:8px;color:#6b8794;font-size:12px;text-align:center;">
-          Nota: penyemak imbas sahaja - untuk keselamatan sebenar gunakan pengesahan di server.
+          Nota: penyemak imbas sahaja - untuk keselamatan sebenar gunakan pengesahan di server。
         </div>
       </div>
     </div>
@@ -1667,25 +1667,110 @@ function buildTemplateD(){
 }
 /* --- end modified buildTemplateD --- */
 
+/* ---------- 新增: 防重入标志与统一生成处理函数 ---------- */
+/* 使用一个简单对象记录每个页面是否正在生成，避免重复触发 */
+const isGenerating = { A: false, B: false, C: false, D: false };
+
+/* A */
+function handleGenerateA(){
+  if (isGenerating.A) return;
+  isGenerating.A = true;
+  if (generateBtn) generateBtn.disabled = true;
+  try {
+    const {output, total, meta} = buildTemplate();
+    if (outputEl) outputEl.textContent = output;
+    if (totalDisplay) totalDisplay.textContent = 'Jumlah: RM' + Math.round(total);
+    saveState();
+
+    const now = new Date().toISOString();
+    const entry = {
+      output,
+      total: Math.round(total),
+      meta,
+      saved_at: now,
+      template: 'A'
+    };
+    saveHistoryEntry(entry);
+  } finally {
+    isGenerating.A = false;
+    if (generateBtn) generateBtn.disabled = false;
+  }
+}
+
+/* B */
+function handleGenerateB(){
+  if (isGenerating.B) return;
+  isGenerating.B = true;
+  if (b_generateBtn) b_generateBtn.disabled = true;
+  try {
+    const { text, total, meta } = buildTemplateBTextFromB();
+    if (outputB_blank) outputB_blank.textContent = text;
+    if (outputB) outputB.textContent = '';
+    if (totalDisplayB) totalDisplayB.textContent = 'Jumlah: RM' + Math.round(total);
+    saveStateB();
+    const now = new Date().toISOString();
+    const entry = {
+      output: text,
+      total: Math.round(total),
+      meta,
+      saved_at: now,
+      template: 'B'
+    };
+    saveHistoryEntry(entry);
+  } finally {
+    isGenerating.B = false;
+    if (b_generateBtn) b_generateBtn.disabled = false;
+  }
+}
+
+/* C */
+function handleGenerateC(){
+  if (isGenerating.C) return;
+  isGenerating.C = true;
+  if (c_generateBtn) c_generateBtn.disabled = true;
+  try {
+    const { text, total, meta } = buildTemplateC();
+    if (outputC_blank) outputC_blank.textContent = text;
+    if (outputC) outputC.textContent = '';
+    if (totalDisplayC) totalDisplayC.textContent = 'Jumlah: RM' + Math.round(total);
+    saveStateC();
+    const now = new Date().toISOString();
+    saveHistoryEntry({output:text,total:Math.round(total),meta,saved_at:now,template:'C'});
+  } finally {
+    isGenerating.C = false;
+    if (c_generateBtn) c_generateBtn.disabled = false;
+  }
+}
+
+/* D */
+function handleGenerateD(){
+  if (isGenerating.D) return;
+  isGenerating.D = true;
+  if (d_generateBtn) d_generateBtn.disabled = true;
+  try {
+    const { text, total, meta } = buildTemplateD();
+    if (outputD_blank) outputD_blank.textContent = text;
+    if (outputD) outputD.textContent = '';
+    if (totalDisplayD) totalDisplayD.textContent = 'Jumlah: RM' + Math.round(total);
+    saveStateD();
+    const now = new Date().toISOString();
+    const entry = {
+      output: text,
+      total: Math.round(total),
+      meta,
+      saved_at: now,
+      template: 'D'
+    };
+    saveHistoryEntry(entry);
+  } finally {
+    isGenerating.D = false;
+    if (d_generateBtn) d_generateBtn.disabled = false;
+  }
+}
+
 /* Buttons - A */
-generateBtn.addEventListener('click', ()=>{
-  const {output, total, meta} = buildTemplate();
-  outputEl.textContent = output;
-  totalDisplay.textContent = 'Jumlah: RM' + Math.round(total);
-  saveState();
-
-  const now = new Date().toISOString();
-  const entry = {
-    output,
-    total: Math.round(total),
-    meta,
-    saved_at: now,
-    template: 'A'
-  };
-  saveHistoryEntry(entry);
-});
-
-copyBtn.addEventListener('click', async ()=>{
+if (generateBtn) generateBtn.addEventListener('click', handleGenerateA);
+if (copyBtn) copyBtn.addEventListener('click', async ()=>{
   const text = outputEl.textContent || '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   try {
@@ -1696,16 +1781,14 @@ copyBtn.addEventListener('click', async ()=>{
     alert('Gagal salin — cuba guna penyemak imbas yang menyokong clipboard API.');
   }
 });
-
-waBtn.addEventListener('click', ()=>{
+if (waBtn) waBtn.addEventListener('click', ()=>{
   const text = outputEl.textContent || '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   const encoded = encodeURIComponent(text);
   const url = `https://wa.me/?text=${encoded}`;
   window.open(url, '_blank');
 });
-
-downloadBtn.addEventListener('click', ()=>{
+if (downloadBtn) downloadBtn.addEventListener('click', ()=>{
   const text = outputEl.textContent || '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
@@ -1720,34 +1803,19 @@ downloadBtn.addEventListener('click', ()=>{
 });
 
 /* Buttons - B */
-b_generateBtn.addEventListener('click', ()=>{
-  const { text, total, meta } = buildTemplateBTextFromB();
-  if (outputB_blank) outputB_blank.textContent = text;
-  if (outputB) outputB.textContent = '';
-  totalDisplayB.textContent = 'Jumlah: RM' + Math.round(total);
-  saveStateB();
-  const now = new Date().toISOString();
-  const entry = {
-    output: text,
-    total: Math.round(total),
-    meta,
-    saved_at: now,
-    template: 'B'
-  };
-  saveHistoryEntry(entry);
-});
-b_copyBtn.addEventListener('click', async ()=>{
+if (b_generateBtn) b_generateBtn.addEventListener('click', handleGenerateB);
+if (b_copyBtn) b_copyBtn.addEventListener('click', async ()=>{
   const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   try { await navigator.clipboard.writeText(text); alert('Template B telah disalin ke clipboard!'); }
   catch(e){ alert('Gagal salin — cuba penyemak imbas yang menyokong clipboard API.'); }
 });
-b_waBtn.addEventListener('click', ()=>{
+if (b_waBtn) b_waBtn.addEventListener('click', ()=>{
   const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 });
-b_downloadBtn.addEventListener('click', ()=>{
+if (b_downloadBtn) b_downloadBtn.addEventListener('click', ()=>{
   const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
@@ -1755,45 +1823,25 @@ b_downloadBtn.addEventListener('click', ()=>{
 });
 
 /* Buttons - C */
-c_generateBtn.addEventListener('click', ()=>{ const { text, total, meta } = buildTemplateC(); if (outputC_blank) outputC_blank.textContent = text; if (outputC) outputC.textContent = ''; totalDisplayC.textContent = 'Jumlah: RM' + Math.round(total); saveStateC(); const now = new Date().toISOString(); saveHistoryEntry({output:text,total:Math.round(total),meta,saved_at:now,template:'C'}); });
-c_copyBtn.addEventListener('click', async ()=>{ const text = (outputC_blank && outputC_blank.textContent) ? outputC_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } try { await navigator.clipboard.writeText(text); alert('Template C telah disalin ke clipboard!'); } catch(e){ alert('Gagal salin — cuba penyemak imbas yang menyokong clipboard API.'); } });
-c_waBtn.addEventListener('click', ()=>{ const text = (outputC_blank && outputC_blank.textContent) ? outputC_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'); });
-c_downloadBtn.addEventListener('click', ()=>{ const text = (outputC_blank && outputC_blank.textContent) ? outputC_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } const blob = new Blob([text], {type:'text/plain;charset=utf-8'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pinjaman-template-c.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
+if (c_generateBtn) c_generateBtn.addEventListener('click', handleGenerateC);
+if (c_copyBtn) c_copyBtn.addEventListener('click', async ()=>{ const text = (outputC_blank && outputC_blank.textContent) ? outputC_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } try { await navigator.clipboard.writeText(text); alert('Template C telah disalin ke clipboard!'); } catch(e){ alert('Gagal salin — cuba penyemak imbas yang menyokong clipboard API.'); } });
+if (c_waBtn) c_waBtn.addEventListener('click', ()=>{ const text = (outputC_blank && outputC_blank.textContent) ? outputC_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'); });
+if (c_downloadBtn) c_downloadBtn.addEventListener('click', ()=>{ const text = (outputC_blank && outputC_blank.textContent) ? outputC_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } const blob = new Blob([text], {type:'text/plain;charset=utf-8'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pinjaman-template-c.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
 
 /* Buttons - D */
-d_generateBtn.addEventListener('click', ()=>{
-  const { text, total, meta } = buildTemplateD();
-  if (outputD_blank) outputD_blank.textContent = text;
-  if (outputD) outputD.textContent = '';
-  totalDisplayD.textContent = 'Jumlah: RM' + Math.round(total);
-  saveStateD();
-  const now = new Date().toISOString();
-  const entry = {
-    output: text,
-    total: Math.round(total),
-    meta,
-    saved_at: now,
-    template: 'D'
-  };
-  saveHistoryEntry(entry);
-});
-d_copyBtn.addEventListener('click', async ()=>{
+if (d_generateBtn) d_generateBtn.addEventListener('click', handleGenerateD);
+if (d_copyBtn) d_copyBtn.addEventListener('click', async ()=>{
   const text = (outputD_blank && outputD_blank.textContent) ? outputD_blank.textContent : '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   try { await navigator.clipboard.writeText(text); alert('Template D telah disalin ke clipboard!'); }
   catch(e){ alert('Gagal salin — cuba penyemak imbas yang menyokong clipboard API.'); }
 });
-d_waBtn.addEventListener('click', ()=>{
+if (d_waBtn) d_waBtn.addEventListener('click', ()=>{
   const text = (outputD_blank && outputD_blank.textContent) ? outputD_blank.textContent : '';
   if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 });
-d_downloadBtn.addEventListener('click', ()=>{
-  const text = (outputD_blank && outputD_blank.textContent) ? outputD_blank.textContent : '';
-  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
-  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
-  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pinjaman-template-d.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-});
+if (d_downloadBtn) d_downloadBtn.addEventListener('click', ()=>{ const text = (outputD_blank && outputD_blank.textContent) ? outputD_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } const blob = new Blob([text], {type:'text/plain;charset=utf-8'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pinjaman-template-d.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
 
 /* History UI */
 function openHistory(){ renderHistoryList(); historyModal.style.display = 'flex'; historyModal.setAttribute('aria-hidden','false'); }
@@ -2084,12 +2132,12 @@ if (d_myName) d_myName.addEventListener('input', saveStateD);
    We prevent default to avoid accidental form submissions. */
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Enter') return;
-  // If password screen is visible, allow existing password handlers to run (do not intercept)
-  if (passwordScreen && !passwordScreen.classList.contains('hidden')) return;
+  // If password screen is visible in DOM, allow existing password handlers to run (do not intercept)
+  if (passwordScreen && passwordScreen.isConnected) return;
   // Do not trigger when focus is inside a dialog contenteditable or textarea where Enter may be desired.
   const active = document.activeElement;
   if (active && (active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
-  // If user is typing in an input field, allow Enter to insert (but many inputs submit) - we still follow earlier behavior and trigger generate.
+  // Prevent default and trigger generate for current page
   e.preventDefault();
   switch (currentPageIndex) {
     case 0: if (generateBtn) generateBtn.click(); break;
@@ -2107,8 +2155,8 @@ document.addEventListener('keydown', (e) => {
    an input, textarea, or contenteditable element. */
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-  // If password screen is visible, do nothing (keep login behavior)
-  if (passwordScreen && !passwordScreen.classList.contains('hidden')) return;
+  // If password screen is visible in DOM, do nothing (keep login behavior)
+  if (passwordScreen && passwordScreen.isConnected) return;
   const active = document.activeElement;
   // If typing in a text field or textarea or contenteditable, do not navigate
   if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
