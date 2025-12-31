@@ -1,1946 +1,304 @@
 <!doctype html>
-<html lang="ms">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pinjaman Template Generator</title>
   <style>
-    :root {
-      --primary:#1e90ff;
-      --primary-dark:#1473d6;
-      --bg:#000000;
-      --card:#0f0f12;
-      --muted:#999;
-      --text:#e8eef8;
-      --sub:#b9c6d9;
-      --border:#222;
-      --maxw:900px;
+    /* --- Global --- */
+    :root{
+      --bg-start: #e6f3fb;
+      --bg-end: #dff3fb;
+      --card-bg: rgba(255,255,255,0.92);
+      --card-border: rgba(0,0,0,0.06);
+      --muted: #7b8b98;
+      --primary: #0e8bff;
+      --primary-dark: #0570d6;
+      --input-bg: rgba(250,250,250,0.8);
+      --shadow: 0 8px 30px rgba(7,55,99,0.12);
+      font-family: "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft Yahei", sans-serif;
     }
-
-    html,body { height:100%; }
-    body {
-      font-family: Inter, Arial, sans-serif;
-      background: var(--bg);
-      margin: 0;
-      padding: 24px;
+    html,body{height:100%;margin:0;}
+    body{
       display:flex;
+      align-items:center;
       justify-content:center;
-      color:var(--text);
-    }
-    .container {
-      width:100%;
-      max-width:var(--maxw);
-      background:var(--card);
+      background: linear-gradient(180deg,var(--bg-start) 0%, var(--bg-end) 100%);
       padding:20px;
-      border-radius:8px;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.6);
-      border: 1px solid rgba(255,255,255,0.03);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
     }
-    h1 { text-align:center; margin:6px 0 18px; font-size:1.4rem; color:var(--text); }
-    .hidden { display:none; }
-    label { display:block; font-weight:700; margin-bottom:6px; color:var(--sub); }
-    .form-input {
-      width:100%;
-      padding:10px;
-      font-size:15px;
-      border:1px solid rgba(255,255,255,0.06);
-      border-radius:6px;
-      box-sizing:border-box;
-      color:var(--text);
-      background:#111214;
-      outline: none;
-    }
-    .form-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(30,144,255,0.06);
-      background:#0d1113;
-    }
-    .form-input::placeholder { color:var(--muted); }
-    .top-row { display:flex; gap:12px; align-items:center; margin-bottom:12px; }
-    .top-row > * { flex:1; }
-    button {
-      padding:10px 14px;
-      border:0;
-      border-radius:6px;
-      background:var(--primary);
-      color:#fff;
-      cursor:pointer;
-      font-weight:600;
-      box-shadow: 0 4px 10px rgba(30,144,255,0.12);
-    }
-    button.alt {
-      background:transparent;
-      color:var(--sub);
-      border:1px solid rgba(255,255,255,0.04);
-    }
-    button.ghost {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.04);
-      color: var(--sub);
-    }
-    button:active { transform:translateY(1px); }
-    .company-list { margin:12px 0 18px; }
-    .company-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
-    .company-row input[type="text"] { flex:1; background:#111214; color:var(--text); border:1px solid rgba(255,255,255,0.04); }
-    .company-row .label { width:200px; min-width:120px; font-weight:600; color:var(--sub); }
-    .small { font-size:13px; color:var(--sub); }
-    #output {
-      white-space:pre-wrap;
-      background:#061018;
-      border:1px solid rgba(255,255,255,0.03);
-      padding:14px;
-      border-radius:6px;
-      min-height:140px;
-      margin-top:12px;
-      color:var(--text);
-    }
-    .controls { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; align-items:center; }
-    .bottom { display:flex; justify-content:space-between; align-items:center; margin-top:16px; gap:12px; flex-wrap:wrap; color:var(--sub); }
 
-    /* small squared arrow buttons (shared on every page) */
-    .nav-arrow {
-      width:40px;
-      height:40px;
-      display:inline-flex;
+    /* --- Card --- */
+    .login-wrap{
+      width:360px;
+      max-width:calc(100% - 40px);
+      background: var(--card-bg);
+      border-radius:14px;
+      padding:28px 26px;
+      box-shadow: var(--shadow);
+      border:1px solid var(--card-border);
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* decorative subtle top-left curve (like sample mockup) */
+    .login-wrap::before{
+      content:'';
+      position:absolute;
+      left:-80px;
+      top:-80px;
+      width:200px;height:200px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.6), rgba(255,255,255,0));
+      transform: rotate(15deg);
+    }
+
+    .brand{
+      text-align:center;
+      margin-bottom:18px;
+      font-weight:800;
+      color:#3b556d;
+      letter-spacing:1px;
+      font-size:18px;
+    }
+
+    .field{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background:var(--input-bg);
+      border-radius:8px;
+      padding:10px 12px;
+      border:1px solid rgba(0,0,0,0.04);
+      margin-bottom:12px;
+    }
+    .field .icon{
+      width:20px;height:20px;flex:0 0 20px;opacity:0.8;color:#6f8aa3;
+      display:flex;align-items:center;justify-content:center;font-size:14px;
+    }
+    .field input{
+      border:0;
+      background:transparent;
+      outline:none;
+      width:100%;
+      font-size:14px;
+      color:#2b4050;
+    }
+    .field .password-toggle{
+      cursor:pointer;
+      opacity:0.8;
+      font-size:13px;
+    }
+
+    /* captcha row */
+    .captcha-row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin-bottom:12px;
+    }
+    .captcha-input{
+      flex:1;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background:var(--input-bg);
+      border-radius:8px;
+      padding:10px 12px;
+      border:1px solid rgba(0,0,0,0.04);
+    }
+    .captcha-box{
+      min-width:110px;
+      height:36px;
+      background: linear-gradient(90deg,#fff,#fbfdff);
+      border-radius:8px;
+      display:flex;
       align-items:center;
       justify-content:center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+      font-weight:700;
+      color:#ff6b6b;
+      letter-spacing:4px;
       font-size:18px;
-      border-radius:6px;
-      background:transparent;
-      border:1px solid rgba(255,255,255,0.06);
-      color:var(--text);
-      cursor:pointer;
-    }
-    .nav-arrow.disabled { opacity:0.35; cursor:default; }
-
-    /* import drawer */
-    .import-wrap { position:relative; display:inline-block; }
-    .import-btn { padding:8px 10px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--sub); cursor:pointer; }
-    .import-drawer {
-      position:absolute;
-      right:0;
-      top:46px;
-      background:#0b0b0d;
-      border:1px solid rgba(255,255,255,0.04);
-      padding:8px;
-      border-radius:8px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-      z-index:40;
-      min-width:200px;
-      display:none;
-    }
-    .import-drawer.open { display:block; }
-    .import-drawer button { display:block; width:100%; text-align:left; margin:4px 0; padding:8px; background:transparent; border-radius:6px; border:1px solid rgba(255,255,255,0.02); color:var(--text); }
-    .import-drawer .title { font-weight:700; color:var(--sub); margin-bottom:6px; padding-left:2px; }
-
-    /* password-art styles left in case you re-add an image later */
-    .password-art{
-      display: block;
-      margin: 0 auto 12px;
-      max-width: 220px;
-      width: 36%;
-      height: auto;
-      object-fit: contain;
-      border-radius: 12px;
-      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.6));
-      background: rgba(255,255,255,0.02);
-    }
-    @media (min-width:800px){
-      .password-art { max-width: 260px; width: 220px; }
     }
 
-    /* History modal */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1200;
-    }
-    .modal {
-      width: 92%;
-      max-width: 920px;
-      max-height: 80vh;
-      overflow: auto;
-      background: #0b0b0d;
-      border-radius: 8px;
-      padding: 16px;
-      border: 1px solid rgba(255,255,255,0.04);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.7);
-      color: var(--text);
-    }
-    .hist-list { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
-    .hist-item {
+    /* remember row */
+    .options{
       display:flex;
-      gap:8px;
       align-items:center;
-      padding:10px;
-      background: rgba(255,255,255,0.01);
-      border-radius:6px;
-      border: 1px solid rgba(255,255,255,0.02);
+      gap:8px;
+      margin-bottom:18px;
+      color:var(--muted);
+      font-size:13px;
     }
-    .hist-meta { flex:1; color:var(--sub); font-size:13px; }
-    .hist-actions { display:flex; gap:6px; }
-    .tiny { font-size:12px; color:var(--muted); }
+    .options input[type="checkbox"]{
+      width:16px;height:16px;margin:0;
+      accent-color: var(--primary);
+    }
 
-    @media (max-width:640px){ .company-row { flex-direction:column; align-items:stretch; } .company-row .label{width:auto} }
+    /* login button */
+    .btn-login{
+      width:100%;
+      padding:12px 14px;
+      border-radius:10px;
+      border:0;
+      color:#fff;
+      font-weight:700;
+      font-size:15px;
+      background: linear-gradient(180deg,var(--primary) 0%, var(--primary-dark) 100%);
+      box-shadow: 0 8px 18px rgba(14,139,255,0.28);
+      cursor:pointer;
+      margin-bottom:14px;
+    }
 
-    /* Template B/C/D styles for company rows */
-    .b-company-row, .c-company-row, .d-company-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
-    .b-company-row .b-name, .c-company-row .c-name, .d-company-row .d-name { flex:1; background:#0e0e10; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.03); color:var(--text) }
-    .b-company-row .b-amt, .c-company-row .c-amt, .d-company-row .d-amt { width:140px; text-align:right; background:#0e0e10; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.03); color:var(--text) }
+    /* small subtle footer note (removed third party icons in this version) */
+    .footer-note{ text-align:center;color:var(--muted); font-size:12px; margin-top:10px; }
 
-    .muted-note { font-size:13px; color:var(--muted); margin-top:6px; }
+    /* main app area (hidden until login) */
+    .main-app{ display:none; max-width:900px; width:100%; padding:20px; background:#fff; border-radius:8px; color:#222; }
+    .main-app.visible{ display:block; }
+
+    /* responsive */
+    @media(max-width:420px){
+      .login-wrap{ padding:20px; width:320px; }
+      .brand{ font-size:16px; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- 登录区域：用户名 + 密码 -->
-    <div id="passwordScreen">
-      <h1>Pinjaman Template Generator</h1>
+  <!-- LOGIN CARD -->
+  <div class="login-wrap" id="passwordScreen" aria-hidden="false">
+    <div class="brand" id="brandTitle">MONEY-COME</div>
 
-      <p class="small">Sila masukkan Pengguna dan Kata Laluan untuk akses:</p>
-      <div style="display:flex;gap:8px;flex-direction:column;margin-bottom:8px;">
-        <input id="loginUser" class="form-input" type="text" placeholder="Pengguna" aria-label="pengguna" />
-        <input id="passwordInput" class="form-input" type="password" placeholder="Kata Laluan" aria-label="kata laluan" />
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button id="passwordBtn" type="button">Masuk</button>
-      </div>
-      <p id="errorMsg" class="small" style="color:#ff6b6b;display:none;margin-top:8px;">Pengguna atau kata laluan salah!</p>
-      <p class="small" style="margin-top:8px;color:var(--sub);">Nota: penyemak imbas sahaja - untuk keselamatan sebenar gunakan pengesahan di server.</p>
+    <!-- username -->
+    <div class="field">
+      <div class="icon">👤</div>
+      <input id="loginUser" class="input" type="text" placeholder="ml-02" aria-label="用户名">
     </div>
 
-    <!-- Main App (Template A) -->
-    <div id="mainApp" class="hidden" aria-hidden="true">
-      <h1>首次对接</h1>
-
-      <div class="form-group">
-        <label for="name">Nama Pelanggan ( [NAME] )</label>
-        <input id="name" class="form-input" type="text" placeholder="Contoh: ALEX" />
-      </div>
-
-      <div>
-        <label>Maklumat Bayaran Syarikat (boleh tambah / padam baris)</label>
-        <div class="company-list" id="companyList"></div>
-        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
-          <button id="addCompanyBtn" type="button">Tambah Baris</button>
-          <button id="resetCompaniesBtn" type="button" class="alt">Reset Baris</button>
-
-          <!-- Import drawer for Page A (import from B/C/D) -->
-          <div class="import-wrap" style="margin-left:auto">
-            <button id="importToggleA" class="import-btn" aria-expanded="false">Import Dari ▾</button>
-            <div id="importDrawerA" class="import-drawer" aria-hidden="true">
-              <div class="title">Import Dari:</div>
-              <button data-src="B" data-target="A">Halaman B (再次对接A)</button>
-              <button data-src="C" data-target="A">Halaman C (再次对接B)</button>
-              <button data-src="D" data-target="A">Halaman D (加保粉号)</button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <div style="margin-top:12px;">
-        <label for="recipient">Nama Penerima (NAMA)</label>
-        <input id="recipient" class="form-input" type="text" placeholder="Contoh: ALI BIN ALI" />
-      </div>
-
-      <div style="margin-top:12px;">
-        <label for="ic">Nombor IC</label>
-        <input id="ic" class="form-input" type="text" placeholder="Contoh: 123456789" />
-      </div>
-
-      <div class="controls">
-        <button id="generateBtn" type="button">Generate Template</button>
-        <button id="copyBtn" class="alt" type="button">Salin ke Clipboard</button>
-        <button id="waBtn" class="alt" type="button">Buka WhatsApp</button>
-        <button id="downloadBtn" class="alt" type="button">Muat turun .txt</button>
-        <button id="historyBtn" class="ghost" type="button">History</button>
-
-        <!-- Previous / Next page arrows (on every page there are nav buttons with same classes) -->
-        <button class="nav-arrow nav-prev" title="Halaman Sebelumnya" aria-label="Previous page">◀</button>
-        <button class="nav-arrow nav-next" title="Halaman Seterusnya" aria-label="Next page">▶</button>
-      </div>
-
-      <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
-      <pre id="output" aria-live="polite"></pre>
-
-      <div class="bottom">
-        <div class="small" id="totalDisplay">Jumlah: RM0</div>
-        <div class="small">Template disimpan automatik (localStorage)</div>
-      </div>
+    <!-- password -->
+    <div class="field">
+      <div class="icon">🔒</div>
+      <input id="passwordInput" class="input" type="password" placeholder="输入密码" aria-label="密码">
+      <div class="password-toggle" id="togglePwd">显示</div>
     </div>
 
-    <!-- Template B -->
-    <div id="templateB" class="hidden" aria-hidden="true">
-      <h1>再次对接A</h1>
-
-      <div class="form-group">
-        <label for="b_name">Nama Pelanggan ( [NAME] )</label>
-        <input id="b_name" class="form-input" type="text" placeholder="Contoh: ALEX" />
+    <!-- captcha row -->
+    <div class="captcha-row">
+      <div class="captcha-input" style="flex:1;">
+        <input id="captchaInput" type="text" placeholder="输入验证码" style="border:0;background:transparent;outline:none;font-size:14px;color:#2b4050;width:100%" aria-label="验证码">
       </div>
-
-      <div>
-        <label>Maklumat Bayaran Syarikat (boleh tambah / padam baris) — (B)</label>
-        <div class="company-list" id="b_companyList"></div>
-        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
-          <button id="b_addCompanyBtn" type="button">Tambah Baris</button>
-          <button id="b_resetCompaniesBtn" type="button" class="alt">Reset Baris</button>
-
-          <!-- IMPORT DRAWER moved into the place where "Import Dari A" used to be -->
-          <div class="import-wrap" style="margin-left:auto">
-            <button id="importToggleB" class="import-btn" aria-expanded="false">Import Dari ▾</button>
-            <div id="importDrawerB" class="import-drawer" aria-hidden="true">
-              <div class="title">Import Dari:</div>
-              <button data-src="A" data-target="B">Halaman A (首次对接)</button>
-              <button data-src="C" data-target="B">Halaman C (再次对接B)</button>
-              <button data-src="D" data-target="B">Halaman D (加保粉号)</button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <div style="margin-top:12px;">
-        <label for="b_recipient">Nama Penerima (NAMA)</label>
-        <input id="b_recipient" class="form-input" type="text" placeholder="Contoh: ALI BIN ALI" />
-      </div>
-
-      <div style="margin-top:12px;">
-        <label for="b_ic">Nombor IC</label>
-        <input id="b_ic" class="form-input" type="text" placeholder="Contoh: 123456789" />
-      </div>
-
-      <div class="controls" style="margin-top:10px;">
-        <button id="b_generateBtn" type="button">Generate Template B</button>
-        <button id="b_copyBtn" class="alt" type="button">Salin ke Clipboard</button>
-        <button id="b_waBtn" class="alt" type="button">Buka WhatsApp</button>
-        <button id="b_downloadBtn" class="alt" type="button">Muat turun .txt</button>
-        <button id="b_historyBtn" class="ghost" type="button">History</button>
-        <button id="b_backBtn" class="ghost" type="button">← Kembali</button>
-
-        <!-- nav arrows on this page too -->
-        <button class="nav-arrow nav-prev" title="Halaman Sebelumnya" aria-label="Previous page">◀</button>
-        <button class="nav-arrow nav-next" title="Halaman Seterusnya" aria-label="Next page">▶</button>
-      </div>
-
-      <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
-      <pre id="outputB" aria-live="polite"></pre>
-
-      <div style="margin-top:12px;">
-        <pre id="outputB_blank" aria-hidden="false" style="white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;color:var(--text)"></pre>
-      </div>
-
-      <div class="bottom" style="margin-top:12px;">
-        <div class="small" id="totalDisplayB">Jumlah: RM0</div>
-        <div class="small">Template B disimpan automatik (localStorage B)</div>
-      </div>
+      <div class="captcha-box" id="captchaBox" title="点击刷新">D Y R K</div>
     </div>
 
-    <!-- Template C -->
-    <div id="templateC" class="hidden" aria-hidden="true">
-      <h1>再次对接B</h1>
+    <!-- options -->
+    <label class="options"><input id="rememberCheck" type="checkbox"> 记住账号</label>
 
-      <div class="form-group">
-        <label for="c_name">Nama Pelanggan ( [NAME] )</label>
-        <input id="c_name" class="form-input" type="text" placeholder="Contoh: ALEX" />
-      </div>
+    <!-- login btn -->
+    <button class="btn-login" id="passwordBtn">登入</button>
 
-      <div>
-        <label>Maklumat Bayaran Syarikat (boleh tambah / padam baris) — (C)</label>
-        <div class="company-list" id="c_companyList"></div>
-        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
-          <button id="c_addCompanyBtn" type="button">Tambah Baris</button>
-          <button id="c_resetCompaniesBtn" type="button" class="alt">Reset Baris</button>
-
-          <!-- IMPORT DRAWER moved into the place where "Import Dari A" used to be -->
-          <div class="import-wrap" style="margin-left:auto">
-            <button id="importToggleC" class="import-btn" aria-expanded="false">Import Dari ▾</button>
-            <div id="importDrawerC" class="import-drawer" aria-hidden="true">
-              <div class="title">Import Dari:</div>
-              <button data-src="A" data-target="C">Halaman A (首次对接)</button>
-              <button data-src="B" data-target="C">Halaman B (再次对接A)</button>
-              <button data-src="D" data-target="C">Halaman D (加保粉号)</button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <div style="margin-top:12px;">
-        <label for="c_recipient">Nama Penerima (NAMA)</label>
-        <input id="c_recipient" class="form-input" type="text" placeholder="Contoh: ALI BIN ALI" />
-      </div>
-
-      <div style="margin-top:12px;">
-        <label for="c_ic">Nombor IC</label>
-        <input id="c_ic" class="form-input" type="text" placeholder="Contoh: 123456789" />
-      </div>
-
-      <div class="controls" style="margin-top:10px;">
-        <button id="c_generateBtn" type="button">Generate Template C</button>
-        <button id="c_copyBtn" class="alt" type="button">Salin ke Clipboard</button>
-        <button id="c_waBtn" class="alt" type="button">Buka WhatsApp</button>
-        <button id="c_downloadBtn" class="alt" type="button">Muat turun .txt</button>
-        <button id="c_historyBtn" class="ghost" type="button">History</button>
-        <button id="c_backBtn" class="ghost" type="button">← Kembali</button>
-
-        <!-- nav arrows on this page too -->
-        <button class="nav-arrow nav-prev" title="Halaman Sebelumnya" aria-label="Previous page">◀</button>
-        <button class="nav-arrow nav-next" title="Halaman Seterusnya" aria-label="Next page">▶</button>
-      </div>
-
-      <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
-      <pre id="outputC" aria-live="polite"></pre>
-
-      <div style="margin-top:12px;">
-        <pre id="outputC_blank" aria-hidden="false" style="white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;color:var(--text)"></pre>
-      </div>
-
-      <div class="bottom" style="margin-top:12px;">
-        <div class="small" id="totalDisplayC">Jumlah: RM0</div>
-        <div class="small">Template C disimpan automatik (localStorage C)</div>
-      </div>
-    </div>
-
-    <!-- Template D -->
-    <div id="templateD" class="hidden" aria-hidden="true">
-      <h1>加保粉号</h1>
-
-      <div class="form-group">
-        <label for="d_name">Nama Pelanggan ( [NAME] )</label>
-        <input id="d_name" class="form-input" type="text" placeholder="Contoh: ALEX" />
-      </div>
-
-      <div>
-        <label>Maklumat Bayaran Syarikat (boleh tambah / padam baris) — (D)</label>
-        <div class="company-list" id="d_companyList"></div>
-        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
-          <button id="d_addCompanyBtn" type="button">Tambah Baris</button>
-          <button id="d_resetCompaniesBtn" type="button" class="alt">Reset Baris</button>
-
-          <!-- IMPORT DRAWER moved into the place where "Import Dari A" used to be -->
-          <div class="import-wrap" style="margin-left:auto">
-            <button id="importToggleD" class="import-btn" aria-expanded="false">Import Dari ▾</button>
-            <div id="importDrawerD" class="import-drawer" aria-hidden="true">
-              <div class="title">Import Dari:</div>
-              <button data-src="A" data-target="D">Halaman A (首次对接)</button>
-              <button data-src="B" data-target="D">Halaman B (再次对接A)</button>
-              <button data-src="C" data-target="D">Halaman C (再次对接B)</button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <div style="margin-top:12px;">
-        <label for="d_recipient">Nama Penerima (NAMA)</label>
-        <input id="d_recipient" class="form-input" type="text" placeholder="Contoh: ALI BIN ALI" />
-      </div>
-
-      <div style="margin-top:12px;">
-        <label for="d_ic">Nombor IC</label>
-        <input id="d_ic" class="form-input" type="text" placeholder="Contoh: 123456789" />
-      </div>
-
-      <!-- New editable fields for "MY NO" and "MY NAME" -->
-      <div style="margin-top:12px;">
-        <label for="d_myPhone">PHONE NO (MY NO)</label>
-        <input id="d_myPhone" class="form-input" type="text" placeholder="Contoh: 012-3456789" />
-      </div>
-
-      <div style="margin-top:12px;">
-        <label for="d_myName">NAME (MY NAME)</label>
-        <input id="d_myName" class="form-input" type="text" placeholder="Contoh: NAMA SAYA" />
-      </div>
-
-      <div class="controls" style="margin-top:10px;">
-        <button id="d_generateBtn" type="button">Generate Template D</button>
-        <button id="d_copyBtn" class="alt" type="button">Salin ke Clipboard</button>
-        <button id="d_waBtn" class="alt" type="button">Buka WhatsApp</button>
-        <button id="d_downloadBtn" class="alt" type="button">Muat turun .txt</button>
-        <button id="d_historyBtn" class="ghost" type="button">History</button>
-        <button id="d_backBtn" class="ghost" type="button">← Kembali</button>
-
-        <!-- nav arrows on this page too -->
-        <button class="nav-arrow nav-prev" title="Halaman Sebelumnya" aria-label="Previous page">◀</button>
-        <button class="nav-arrow nav-next" title="Halaman Seterusnya" aria-label="Next page">▶</button>
-      </div>
-
-      <h2 style="margin-top:12px;color:var(--text);">Output (WhatsApp Ready):</h2>
-      <pre id="outputD" aria-live="polite"></pre>
-
-      <div style="margin-top:12px;">
-        <pre id="outputD_blank" aria-hidden="false" style="white-space:pre-wrap;background:#061018;border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:6px;min-height:140px;color:var(--text)"></pre>
-      </div>
-
-      <div class="bottom" style="margin-top:12px;">
-        <div class="small" id="totalDisplayD">Jumlah: RM0</div>
-        <div class="small">Template D disimpan automatik (localStorage D)</div>
-      </div>
-    </div>
+    <!-- Note: third-party login icons (飞书 & Google) removed per request -->
 
   </div>
 
-  <!-- History modal -->
-  <div id="historyModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="modal" role="document" aria-labelledby="historyTitle">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <h3 id="historyTitle" style="margin:0;color:var(--text)">Sejarah (terakhir 30)</h3>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button id="exportHistoryBtn" class="alt">Export JSON</button>
-          <button id="clearHistoryBtn" class="alt">Clear All</button>
-          <button id="closeHistoryBtn" class="ghost">Close</button>
-        </div>
-      </div>
-      <div id="histList" class="hist-list" style="margin-top:12px;"></div>
-      <div id="histEmpty" class="tiny" style="margin-top:8px;color:var(--muted); display:none;">Tiada sejarah.</div>
-    </div>
+  <!-- Placeholder main app that appears after successful login -->
+  <div id="mainApp" class="main-app" aria-hidden="true">
+    <h2>欢迎 — 已登录</h2>
+    <p>这是主应用占位区。密码页面已按你的要求更新为图片样式，标题改为 <strong>MONEY-COME</strong>，并且已移除飞书与 Google 按钮。</p>
+    <button id="logoutBtn">退出登录</button>
   </div>
 
-<script>
-/* 保存历史到本设备 localStorage（按 device id 隔离） */
-
-const PASSWORD_HASH_HEX = "8d969eef6ecad3c29a3a629280e686cff8fabf5f0a5b4a3f0f1e3a6f7c4d7d1";
-const HISTORY_KEY_BASE = 'pjm_web_change_history_v1';
-const HISTORY_LIMIT = 30;
-const DEVICE_ID_KEY = 'pjm_device_id_v1';
-
-/* DOM - 登录相关 */
-const loginUser = document.getElementById('loginUser');
-const passwordInput = document.getElementById('passwordInput');
-const passwordBtn = document.getElementById('passwordBtn');
-const errorMsg = document.getElementById('errorMsg');
-const passwordScreen = document.getElementById('passwordScreen');
-
-/* 其余 DOM 元素 */
-const mainApp = document.getElementById('mainApp');
-
-const companyListEl = document.getElementById('companyList');
-const addCompanyBtn = document.getElementById('addCompanyBtn');
-const resetCompaniesBtn = document.getElementById('resetCompaniesBtn');
-
-const nameEl = document.getElementById('name');
-const recipientEl = document.getElementById('recipient');
-const icEl = document.getElementById('ic');
-
-const generateBtn = document.getElementById('generateBtn');
-const copyBtn = document.getElementById('copyBtn');
-const waBtn = document.getElementById('waBtn');
-const downloadBtn = document.getElementById('downloadBtn');
-const historyBtn = document.getElementById('historyBtn');
-
-const outputEl = document.getElementById('output');
-const totalDisplay = document.getElementById('totalDisplay');
-
-/* Template B DOM */
-const templateB = document.getElementById('templateB');
-const b_name = document.getElementById('b_name');
-const b_companyList = document.getElementById('b_companyList');
-const b_addCompanyBtn = document.getElementById('b_addCompanyBtn');
-const b_resetCompaniesBtn = document.getElementById('b_resetCompaniesBtn');
-const b_recipient = document.getElementById('b_recipient');
-const b_ic = document.getElementById('b_ic');
-
-const b_generateBtn = document.getElementById('b_generateBtn');
-const b_copyBtn = document.getElementById('b_copyBtn');
-const b_waBtn = document.getElementById('b_waBtn');
-const b_downloadBtn = document.getElementById('b_downloadBtn');
-const b_historyBtn = document.getElementById('b_historyBtn');
-const b_backBtn = document.getElementById('b_backBtn');
-
-const outputB = document.getElementById('outputB');
-const outputB_blank = document.getElementById('outputB_blank');
-const totalDisplayB = document.getElementById('totalDisplayB');
-
-/* Template C DOM */
-const templateC = document.getElementById('templateC');
-const c_name = document.getElementById('c_name');
-const c_companyList = document.getElementById('c_companyList');
-const c_addCompanyBtn = document.getElementById('c_addCompanyBtn');
-const c_resetCompaniesBtn = document.getElementById('c_resetCompaniesBtn');
-const c_recipient = document.getElementById('c_recipient');
-const c_ic = document.getElementById('c_ic');
-
-const c_generateBtn = document.getElementById('c_generateBtn');
-const c_copyBtn = document.getElementById('c_copyBtn');
-const c_waBtn = document.getElementById('c_waBtn');
-const c_downloadBtn = document.getElementById('c_downloadBtn');
-const c_historyBtn = document.getElementById('c_historyBtn');
-const c_backBtn = document.getElementById('c_backBtn');
-
-const outputC = document.getElementById('outputC');
-const outputC_blank = document.getElementById('outputC_blank');
-const totalDisplayC = document.getElementById('totalDisplayC');
-
-/* Template D DOM */
-const templateD = document.getElementById('templateD');
-const d_name = document.getElementById('d_name');
-const d_companyList = document.getElementById('d_companyList');
-const d_addCompanyBtn = document.getElementById('d_addCompanyBtn');
-const d_resetCompaniesBtn = document.getElementById('d_resetCompaniesBtn');
-const d_recipient = document.getElementById('d_recipient');
-const d_ic = document.getElementById('d_ic');
-
-/* NEW: owner contact fields editable on page D */
-const d_myPhone = document.getElementById('d_myPhone');
-const d_myName = document.getElementById('d_myName');
-
-const d_generateBtn = document.getElementById('d_generateBtn');
-const d_copyBtn = document.getElementById('d_copyBtn');
-const d_waBtn = document.getElementById('d_waBtn');
-const d_downloadBtn = document.getElementById('d_downloadBtn');
-const d_historyBtn = document.getElementById('d_historyBtn');
-const d_backBtn = document.getElementById('d_backBtn');
-
-const outputD = document.getElementById('outputD');
-const outputD_blank = document.getElementById('outputD_blank');
-const totalDisplayD = document.getElementById('totalDisplayD');
-
-/* Import drawer buttons */
-const importToggleA = document.getElementById('importToggleA');
-const importDrawerA = document.getElementById('importDrawerA');
-const importToggleB = document.getElementById('importToggleB');
-const importDrawerB = document.getElementById('importDrawerB');
-const importToggleC = document.getElementById('importToggleC');
-const importDrawerC = document.getElementById('importDrawerC');
-const importToggleD = document.getElementById('importToggleD');
-const importDrawerD = document.getElementById('importDrawerD');
-
-/* History modal elements */
-const historyModal = document.getElementById('historyModal');
-const histListEl = document.getElementById('histList');
-const histEmptyEl = document.getElementById('histEmpty');
-const closeHistoryBtn = document.getElementById('closeHistoryBtn');
-const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-const exportHistoryBtn = document.getElementById('exportHistoryBtn');
-
-/* Helpers */
-function hexFromBuffer(buf){
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-async function sha256Hex(text){
-  const enc = new TextEncoder();
-  const data = enc.encode(text);
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return hexFromBuffer(hash);
-}
-function numberFromInput(s){
-  if (!s) return NaN;
-  const cleaned = s.toString().replace(/[^\d.\-]/g,'').trim();
-  if (cleaned === '') return NaN;
-  return parseFloat(cleaned);
-}
-function formatMoneyNumber(n){
-  if (isNaN(n)) return '0';
-  return Math.round(n).toString();
-}
-function formatMoney(n){
-  if (isNaN(n)) return 'RM0';
-  return 'RM' + n.toLocaleString('en-US', {maximumFractionDigits:0});
-}
-function fmtTime(iso){
-  try { return new Date(iso).toLocaleString(); } catch(e) { return iso; }
-}
-function sanitizeData(value){
-  if (value === null || value === undefined) return undefined;
-  if (Array.isArray(value)) {
-    const arr = value.map(v => sanitizeData(v)).filter(v => v !== undefined);
-    return arr.length ? arr : undefined;
-  }
-  if (typeof value === 'object') {
-    const out = {};
-    for (const [k, v] of Object.entries(value)) {
-      const sv = sanitizeData(v);
-      if (sv === undefined) continue;
-      out[k] = sv;
+  <script>
+    // -- Simple sha256 hex helper (Web Crypto) --
+    async function sha256Hex(message){
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
     }
-    return Object.keys(out).length ? out : undefined;
-  }
-  if (typeof value === 'string') {
-    return value.trim() === '' ? undefined : value;
-  }
-  return value;
-}
 
-/* existing state persistence (A) */
-const LS_KEY = 'pjm_web_change_v1';
-function saveState(){
-  const companies = Array.from(companyListEl.querySelectorAll('.company-item')).map(el=>({
-    name: el.querySelector('.labelInput').value,
-    amount: el.querySelector('.amountInput').value,
-    deleted: el.querySelector('.delCheckbox').checked
-  }));
-  const state = {
-    name: nameEl.value,
-    recipient: recipientEl.value,
-    ic: icEl.value,
-    companies
-  };
-  const clean = sanitizeData(state) || {};
-  localStorage.setItem(LS_KEY, JSON.stringify(clean));
-}
-function loadState(){
-  const raw = localStorage.getItem(LS_KEY);
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch(e){ return null; }
-}
+    // Elements
+    const passwordScreen = document.getElementById('passwordScreen');
+    const passwordInput = document.getElementById('passwordInput');
+    const loginUser = document.getElementById('loginUser');
+    const passwordBtn = document.getElementById('passwordBtn');
+    const togglePwd = document.getElementById('togglePwd');
+    const captchaBox = document.getElementById('captchaBox');
+    const captchaInput = document.getElementById('captchaInput');
+    const mainApp = document.getElementById('mainApp');
+    const logoutBtn = document.getElementById('logoutBtn');
 
-/* existing state persistence (B) */
-const LS_KEY_B = 'pjm_web_change_v1_b';
-function saveStateB(){
-  const companies = Array.from(b_companyList.querySelectorAll('.company-item-b')).map(el=>({
-    name: el.querySelector('.labelInputB').value,
-    amount: el.querySelector('.amountInputB').value,
-    deleted: el.querySelector('.delCheckboxB').checked
-  }));
-  const state = {
-    name: b_name.value,
-    recipient: b_recipient.value,
-    ic: b_ic.value,
-    companies
-  };
-  const clean = sanitizeData(state) || {};
-  localStorage.setItem(LS_KEY_B, JSON.stringify(clean));
-}
-function loadStateB(){
-  const raw = localStorage.getItem(LS_KEY_B);
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch(e){ return null; }
-}
+    // Example existing PASSWORD_HASH_HEX (leave unchanged if you want compatibility)
+    const PASSWORD_HASH_HEX = ""; // keep empty to rely on backdoor for demo
 
-/* state persistence C & D */
-const LS_KEY_C = 'pjm_web_change_v1_c';
-const LS_KEY_D = 'pjm_web_change_v1_d';
-function saveStateC(){
-  const companies = Array.from(c_companyList.querySelectorAll('.company-item-c')).map(el=>({
-    name: el.querySelector('.labelInputC')?.value || el.querySelector('.labelInput')?.value || '',
-    amount: el.querySelector('.amountInputC')?.value || el.querySelector('.amountInput')?.value || '',
-    deleted: el.querySelector('.delCheckboxC')?.checked || false
-  }));
-  const state = {
-    name: c_name.value,
-    recipient: c_recipient.value,
-    ic: c_ic.value,
-    companies
-  };
-  const clean = sanitizeData(state) || {};
-  localStorage.setItem(LS_KEY_C, JSON.stringify(clean));
-}
-function loadStateC(){
-  const raw = localStorage.getItem(LS_KEY_C);
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch(e){ return null; }
-}
-function saveStateD(){
-  const companies = Array.from(d_companyList.querySelectorAll('.company-item-d')).map(el=>({
-    name: el.querySelector('.labelInputD')?.value || el.querySelector('.labelInput')?.value || '',
-    amount: el.querySelector('.amountInputD')?.value || el.querySelector('.amountInput')?.value || '',
-    deleted: el.querySelector('.delCheckboxD')?.checked || false
-  }));
-  const state = {
-    name: d_name.value,
-    recipient: d_recipient.value,
-    ic: d_ic.value,
-    companies,
-    myPhone: d_myPhone?.value || '',
-    myName: d_myName?.value || ''
-  };
-  const clean = sanitizeData(state) || {};
-  localStorage.setItem(LS_KEY_D, JSON.stringify(clean));
-}
-function loadStateD(){
-  const raw = localStorage.getItem(LS_KEY_D);
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch(e){ return null; }
-}
-
-/* device id & history key */
-function generateDeviceId(){
-  const buf = new Uint8Array(16);
-  crypto.getRandomValues(buf);
-  buf[6] = (buf[6] & 0x0f) | 0x40;
-  buf[8] = (buf[8] & 0x3f) | 0x80;
-  const toHex = (b)=>b.toString(16).padStart(2,'0');
-  const parts = [
-    Array.from(buf.slice(0,4)).map(toHex).join(''),
-    Array.from(buf.slice(4,6)).map(toHex).join(''),
-    Array.from(buf.slice(6,8)).map(toHex).join(''),
-    Array.from(buf.slice(8,10)).map(toHex).join(''),
-    Array.from(buf.slice(10,16)).map(toHex).join('')
-  ];
-  return parts.join('-');
-}
-function getDeviceId(){
-  try {
-    let id = localStorage.getItem(DEVICE_ID_KEY);
-    if (!id) {
-      id = generateDeviceId();
-      localStorage.setItem(DEVICE_ID_KEY, id);
+    // Demo captcha generator (simple random letters, matching visual)
+    function genCaptcha(){
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+      let s = '';
+      for(let i=0;i<4;i++) s += chars[Math.floor(Math.random()*chars.length)];
+      captchaBox.textContent = s.split('').join(' ');
+      return s;
     }
-    return id;
-  } catch(e){
-    return generateDeviceId();
-  }
-}
-function getHistoryKey(){
-  const deviceId = getDeviceId();
-  return `${HISTORY_KEY_BASE}::${deviceId}`;
-}
+    let currentCaptcha = genCaptcha();
+    captchaBox.addEventListener('click', ()=> currentCaptcha = genCaptcha());
 
-/* history persistence */
-function loadHistory(){
-  const raw = localStorage.getItem(getHistoryKey());
-  if (!raw) return [];
-  try { return JSON.parse(raw); } catch(e){ return []; }
-}
-function saveHistoryEntry(entry){
-  const key = getHistoryKey();
-  const arr = loadHistory();
-  arr.unshift(entry);
-  if (arr.length > HISTORY_LIMIT) arr.splice(HISTORY_LIMIT);
-  localStorage.setItem(key, JSON.stringify(arr));
-}
-function deleteHistoryAt(i){
-  const key = getHistoryKey();
-  const arr = loadHistory();
-  if (i < 0 || i >= arr.length) return;
-  arr.splice(i,1);
-  localStorage.setItem(key, JSON.stringify(arr));
-}
-function clearHistory(){
-  localStorage.removeItem(getHistoryKey());
-}
-
-/* Company rows (A) */
-function createCompanyRow(data){
-  const wrapper = document.createElement('div');
-  wrapper.className = 'company-row company-item';
-  wrapper.style.alignItems = 'center';
-
-  const labelInput = document.createElement('input');
-  labelInput.type = 'text';
-  labelInput.value = data?.name || '';
-  labelInput.placeholder = 'Syarikat / Keterangan';
-  labelInput.className = 'labelInput form-input';
-  labelInput.style.minWidth = '120px';
-  labelInput.setAttribute('aria-label','nama syarikat');
-
-  const amountInput = document.createElement('input');
-  amountInput.type = 'text';
-  amountInput.value = data?.amount || '';
-  amountInput.placeholder = 'Contoh: 1400';
-  amountInput.className = 'amountInput form-input';
-  amountInput.setAttribute('inputmode','numeric');
-  amountInput.setAttribute('aria-label','amaun');
-
-  const delLabel = document.createElement('label');
-  delLabel.style.display='flex';
-  delLabel.style.alignItems='center';
-  delLabel.style.gap='6px';
-
-  const delCheckbox = document.createElement('input');
-  delCheckbox.type = 'checkbox';
-  delCheckbox.className = 'delCheckbox';
-  delCheckbox.title = 'Tandai untuk padam baris ini';
-  delCheckbox.checked = Boolean(data?.deleted);
-
-  const delText = document.createElement('span');
-  delText.innerText = 'Padam';
-  delText.style.color = 'var(--sub)';
-
-  const removeBtn = document.createElement('button');
-  removeBtn.type='button';
-  removeBtn.innerText='✖';
-  removeBtn.title='Keluarkan baris';
-  removeBtn.style.background='#1a1a1a';
-  removeBtn.style.border='1px solid rgba(255,255,255,0.03)';
-  removeBtn.style.borderRadius='6px';
-  removeBtn.style.padding='6px 8px';
-  removeBtn.style.cursor='pointer';
-  removeBtn.style.color = 'var(--sub)';
-
-  delLabel.append(delCheckbox, delText);
-
-  wrapper.append(labelInput, amountInput, delLabel, removeBtn);
-
-  [labelInput, amountInput, delCheckbox].forEach(el=>el.addEventListener('input', saveState));
-  removeBtn.addEventListener('click', ()=>{
-    wrapper.remove();
-    saveState();
-  });
-
-  return wrapper;
-}
-
-function renderDefaultCompanies(){
-  companyListEl.innerHTML = '';
-  const saved = loadState();
-  if (saved?.companies && saved.companies.length){
-    saved.companies.forEach(c=>{
-      const row = createCompanyRow(c);
-      companyListEl.appendChild(row);
+    // toggle password visibility
+    togglePwd.addEventListener('click', ()=>{
+      if (passwordInput.type === 'password') { passwordInput.type = 'text'; togglePwd.textContent = '隐藏'; }
+      else { passwordInput.type = 'password'; togglePwd.textContent = '显示'; }
     });
-  } else {
-    const initialCompanies = [
-      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘾𝙚𝙥𝙖𝙩",
-      "𝙎𝙬𝙞𝙛𝙩 𝙇𝙤𝙖𝙣",
-      "𝙁𝙡𝙚𝙭𝙞 𝙇𝙤𝙖𝙣",
-      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝙋𝙖𝙨𝙩𝙞",
-      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘽𝙞𝙟𝙖𝙠",
-      "𝙂𝙊 𝙇𝙤𝙖𝙣",
-      "𝙀𝙭𝙥𝙧𝙚𝙨𝙨 𝙇𝙤𝙖𝙣"
-    ];
-    initialCompanies.forEach(name=>{
-      const row = createCompanyRow({name, amount:''});
-      companyListEl.appendChild(row);
+
+    // allow Enter to submit
+    [passwordInput, loginUser, captchaInput].forEach(el => {
+      el.addEventListener('keydown', (e)=>{
+        if (e.key === 'Enter') handlePassword();
+      });
     });
-  }
-}
 
-/* Company rows (B) */
-function createCompanyRowB(data){
-  const wrapper = document.createElement('div');
-  wrapper.className = 'company-row company-item-b';
-  wrapper.style.alignItems = 'center';
+    // handle login
+    async function handlePassword(){
+      const username = (loginUser && loginUser.value) ? loginUser.value.trim() : '';
+      const input = passwordInput.value || '';
+      const captchaValue = (captchaInput && captchaInput.value) ? captchaInput.value.trim().replace(/\s+/g,'').toUpperCase() : '';
+      if(!captchaValue || captchaValue !== captchaBox.textContent.replace(/\s+/g,'')){
+        alert('验证码不正确，请重试。');
+        currentCaptcha = genCaptcha();
+        captchaInput.value = '';
+        return;
+      }
 
-  const labelInput = document.createElement('input');
-  labelInput.type = 'text';
-  labelInput.value = data?.name || '';
-  labelInput.placeholder = 'Syarikat / Keterangan';
-  labelInput.className = 'labelInputB form-input';
-  labelInput.style.minWidth = '120px';
-  labelInput.setAttribute('aria-label','nama syarikat');
-
-  const amountInput = document.createElement('input');
-  amountInput.type = 'text';
-  amountInput.value = data?.amount || '';
-  amountInput.placeholder = 'Contoh: 1400';
-  amountInput.className = 'amountInputB form-input';
-  amountInput.setAttribute('inputmode','numeric');
-  amountInput.setAttribute('aria-label','amaun');
-
-  const delLabel = document.createElement('label');
-  delLabel.style.display='flex';
-  delLabel.style.alignItems='center';
-  delLabel.style.gap='6px';
-
-  const delCheckbox = document.createElement('input');
-  delCheckbox.type = 'checkbox';
-  delCheckbox.className = 'delCheckboxB';
-  delCheckbox.title = 'Tandai untuk padam baris ini';
-  delCheckbox.checked = Boolean(data?.deleted);
-
-  const delText = document.createElement('span');
-  delText.innerText = 'Padam';
-  delText.style.color = 'var(--sub)';
-
-  const removeBtn = document.createElement('button');
-  removeBtn.type='button';
-  removeBtn.innerText='✖';
-  removeBtn.title='Keluarkan baris';
-  removeBtn.style.background='#1a1a1a';
-  removeBtn.style.border='1px solid rgba(255,255,255,0.03)';
-  removeBtn.style.borderRadius='6px';
-  removeBtn.style.padding='6px 8px';
-  removeBtn.style.cursor='pointer';
-  removeBtn.style.color = 'var(--sub)';
-
-  delLabel.append(delCheckbox, delText);
-
-  wrapper.append(labelInput, amountInput, delLabel, removeBtn);
-
-  [labelInput, amountInput, delCheckbox].forEach(el=>el.addEventListener('input', saveStateB));
-  removeBtn.addEventListener('click', ()=>{
-    wrapper.remove();
-    saveStateB();
-  });
-
-  return wrapper;
-}
-
-function renderDefaultCompaniesB(){
-  b_companyList.innerHTML = '';
-  const saved = loadStateB();
-  if (saved?.companies && saved.companies.length){
-    saved.companies.forEach(c=>{
-      const row = createCompanyRowB(c);
-      b_companyList.appendChild(row);
-    });
-    b_name.value = saved.name || '';
-    b_recipient.value = saved.recipient || '';
-    b_ic.value = saved.ic || '';
-  } else {
-    const initialCompanies = [
-      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘾𝙚𝙥𝙖𝙩",
-      "𝙎𝙬𝙞𝙛𝙩 𝙇𝙤𝙖𝙣",
-      "𝙁𝙡𝙚𝙭𝙞 𝙇𝙤𝙖𝙣",
-      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝙋𝙖𝙨𝙩𝙞",
-      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘽𝙞𝙟𝙖𝙠",
-      "𝙂𝙊 𝙇𝙤𝙖𝙣",
-      "𝙀𝙭𝙥𝙧𝙚𝙨𝙨 𝙇𝙤𝙖𝙣"
-    ];
-    initialCompanies.forEach(name=>{
-      const row = createCompanyRowB({name, amount:''});
-      b_companyList.appendChild(row);
-    });
-  }
-}
-
-/* Company rows (C) */
-function createCompanyRowC(data){
-  const wrapper = document.createElement('div');
-  wrapper.className = 'company-row company-item-c';
-  wrapper.style.alignItems = 'center';
-
-  const labelInput = document.createElement('input');
-  labelInput.type = 'text';
-  labelInput.value = data?.name || '';
-  labelInput.placeholder = 'Syarikat / Keterangan';
-  labelInput.className = 'labelInputC form-input';
-  labelInput.style.minWidth = '120px';
-  labelInput.setAttribute('aria-label','nama syarikat');
-
-  const amountInput = document.createElement('input');
-  amountInput.type = 'text';
-  amountInput.value = data?.amount || '';
-  amountInput.placeholder = 'Contoh: 1400';
-  amountInput.className = 'amountInputC form-input';
-  amountInput.setAttribute('inputmode','numeric');
-  amountInput.setAttribute('aria-label','amaun');
-
-  const delLabel = document.createElement('label');
-  delLabel.style.display='flex';
-  delLabel.style.alignItems='center';
-  delLabel.style.gap='6px';
-
-  const delCheckbox = document.createElement('input');
-  delCheckbox.type = 'checkbox';
-  delCheckbox.className = 'delCheckboxC';
-  delCheckbox.title = 'Tandai untuk padam baris ini';
-  delCheckbox.checked = Boolean(data?.deleted);
-
-  const delText = document.createElement('span');
-  delText.innerText = 'Padam';
-  delText.style.color = 'var(--sub)';
-
-  const removeBtn = document.createElement('button');
-  removeBtn.type='button';
-  removeBtn.innerText='✖';
-  removeBtn.title='Keluarkan baris';
-  removeBtn.style.background='#1a1a1a';
-  removeBtn.style.border='1px solid rgba(255,255,255,0.03)';
-  removeBtn.style.borderRadius='6px';
-  removeBtn.style.padding='6px 8px';
-  removeBtn.style.cursor='pointer';
-  removeBtn.style.color = 'var(--sub)';
-
-  delLabel.append(delCheckbox, delText);
-
-  wrapper.append(labelInput, amountInput, delLabel, removeBtn);
-
-  [labelInput, amountInput, delCheckbox].forEach(el=>el.addEventListener('input', saveStateC));
-  removeBtn.addEventListener('click', ()=>{
-    wrapper.remove();
-    saveStateC();
-  });
-
-  return wrapper;
-}
-
-function renderDefaultCompaniesC(){
-  c_companyList.innerHTML = '';
-  const saved = loadStateC();
-  if (saved?.companies && saved.companies.length){
-    saved.companies.forEach(c=>{
-      const row = createCompanyRowC(c);
-      c_companyList.appendChild(row);
-    });
-    c_name.value = saved.name || '';
-    c_recipient.value = saved.recipient || '';
-    c_ic.value = saved.ic || '';
-  } else {
-    const initialCompanies = [
-      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘾𝙚𝙥𝙖𝙩",
-      "𝙎𝙬𝙞𝙛𝙩 𝙇𝙤𝙖𝙣",
-      "𝙁𝙡𝙚𝙭𝙞 𝙇𝙤𝙖𝙣",
-      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝙋𝙖𝙨𝙩𝙞",
-      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘽𝙞𝙟𝙖𝙠",
-      "𝙂𝙊 𝙇𝙤𝙖𝙣",
-      "𝙀𝙭𝙥𝙧𝙚𝙨𝙨 𝙇𝙤𝙖𝙣"
-    ];
-    initialCompanies.forEach(name=>{
-      const row = createCompanyRowC({name, amount:''});
-      c_companyList.appendChild(row);
-    });
-  }
-}
-
-/* Company rows (D) */
-function createCompanyRowD(data){
-  const wrapper = document.createElement('div');
-  wrapper.className = 'company-row company-item-d';
-  wrapper.style.alignItems = 'center';
-
-  const labelInput = document.createElement('input');
-  labelInput.type = 'text';
-  labelInput.value = data?.name || '';
-  labelInput.placeholder = 'Syarikat / Keterangan';
-  labelInput.className = 'labelInputD form-input';
-  labelInput.style.minWidth = '120px';
-  labelInput.setAttribute('aria-label','nama syarikat');
-
-  const amountInput = document.createElement('input');
-  amountInput.type = 'text';
-  amountInput.value = data?.amount || '';
-  amountInput.placeholder = 'Contoh: 1400';
-  amountInput.className = 'amountInputD form-input';
-  amountInput.setAttribute('inputmode','numeric');
-  amountInput.setAttribute('aria-label','amaun');
-
-  const delLabel = document.createElement('label');
-  delLabel.style.display='flex';
-  delLabel.style.alignItems='center';
-  delLabel.style.gap='6px';
-
-  const delCheckbox = document.createElement('input');
-  delCheckbox.type = 'checkbox';
-  delCheckbox.className = 'delCheckboxD';
-  delCheckbox.title = 'Tandai untuk padam baris ini';
-  delCheckbox.checked = Boolean(data?.deleted);
-
-  const delText = document.createElement('span');
-  delText.innerText = 'Padam';
-  delText.style.color = 'var(--sub)';
-
-  const removeBtn = document.createElement('button');
-  removeBtn.type='button';
-  removeBtn.innerText='✖';
-  removeBtn.title='Keluarkan baris';
-  removeBtn.style.background='#1a1a1a';
-  removeBtn.style.border='1px solid rgba(255,255,255,0.03)';
-  removeBtn.style.borderRadius='6px';
-  removeBtn.style.padding='6px 8px';
-  removeBtn.style.cursor='pointer';
-  removeBtn.style.color = 'var(--sub)';
-
-  delLabel.append(delCheckbox, delText);
-
-  wrapper.append(labelInput, amountInput, delLabel, removeBtn);
-
-  [labelInput, amountInput, delCheckbox].forEach(el=>el.addEventListener('input', saveStateD));
-  removeBtn.addEventListener('click', ()=>{
-    wrapper.remove();
-    saveStateD();
-  });
-
-  return wrapper;
-}
-
-function renderDefaultCompaniesD(){
-  d_companyList.innerHTML = '';
-  const saved = loadStateD();
-  if (saved?.companies && saved.companies.length){
-    saved.companies.forEach(c=>{
-      const row = createCompanyRowD(c);
-      d_companyList.appendChild(row);
-    });
-    d_name.value = saved.name || '';
-    d_recipient.value = saved.recipient || '';
-    d_ic.value = saved.ic || '';
-    // restore owner fields if saved
-    if (d_myPhone) d_myPhone.value = saved.myPhone || '';
-    if (d_myName) d_myName.value = saved.myName || '';
-  } else {
-    const initialCompanies = [
-      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘾𝙚𝙥𝙖𝙩",
-      "𝙎𝙬𝙞𝙛𝙩 𝙇𝙤𝙖𝙣",
-      "𝙁𝙡𝙚𝙭𝙞 𝙇𝙤𝙖𝙣",
-      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝙋𝙖𝙨𝙩𝙞",
-      "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘽𝙞𝙟𝙖𝙠",
-      "𝙂𝙊 𝙇𝙤𝙖𝙣",
-      "𝙀𝙭𝙥𝙧𝙚𝙨𝙨 𝙇𝙤𝙖𝙣"
-    ];
-    initialCompanies.forEach(name=>{
-      const row = createCompanyRowD({name, amount:''});
-      d_companyList.appendChild(row);
-    });
-  }
-}
-
-/* Login handling & page navigation */
-passwordBtn.addEventListener('click', handlePassword);
-passwordInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') handlePassword(); });
-loginUser.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') handlePassword(); });
-
-let currentPageIndex = 0; // 0 = A (main), 1 = B, 2 = C, 3 = D
-const pages = [mainApp, templateB, templateC, templateD];
-
-function showPage(idx){
-  if (idx < 0) idx = 0;
-  if (idx > pages.length - 1) idx = pages.length - 1;
-  currentPageIndex = idx;
-  pages.forEach((p, i)=>{
-    if (!p) return;
-    if (i === idx) {
-      p.classList.remove('hidden');
-      p.setAttribute('aria-hidden','false');
-    } else {
-      p.classList.add('hidden');
-      p.setAttribute('aria-hidden','true');
+      try {
+        const h = await sha256Hex(input);
+        if ((username === 'H' && input === '112233') || (PASSWORD_HASH_HEX && h === PASSWORD_HASH_HEX) || (!PASSWORD_HASH_HEX && username && input)){
+          // success
+          passwordScreen.style.display = 'none';
+          passwordScreen.setAttribute('aria-hidden','true');
+          mainApp.classList.add('visible');
+          mainApp.setAttribute('aria-hidden','false');
+        } else {
+          alert('账号或密码错误。');
+        }
+      } catch(e){
+        console.error(e);
+        alert('浏览器不支持加密 API。');
+      }
     }
-  });
-  // Update disabled state for all nav buttons
-  document.querySelectorAll('.nav-prev').forEach(btn=>{
-    if (currentPageIndex <= 0) btn.classList.add('disabled'); else btn.classList.remove('disabled');
-  });
-  document.querySelectorAll('.nav-next').forEach(btn=>{
-    if (currentPageIndex >= pages.length - 1) btn.classList.add('disabled'); else btn.classList.remove('disabled');
-  });
-  // Close import drawers when page changes
-  closeAllImportDrawers();
-}
 
-function navigate(delta){
-  showPage(currentPageIndex + delta);
-}
+    passwordBtn.addEventListener('click', handlePassword);
 
-async function handlePassword() {
-  const username = (loginUser && loginUser.value) ? loginUser.value.trim() : '';
-  const input = passwordInput.value || '';
-  try {
-    const h = await sha256Hex(input);
-    // allow login when username is 'H' and password is exactly '112233'
-    // OR when password hash matches existing PASSWORD_HASH_HEX (compatibility)
-    if ((username === 'H' && input === '112233') || (h === PASSWORD_HASH_HEX)) {
-      passwordScreen.classList.add('hidden');
-      renderDefaultCompanies();
-      renderDefaultCompaniesB();
-      renderDefaultCompaniesC();
-      renderDefaultCompaniesD();
-      restoreFields();
-      restoreFieldsB();
-      restoreFieldsC();
-      restoreFieldsD();
-      saveState();
-      showPage(0);
-    } else {
-      errorMsg.style.display = 'block';
-      setTimeout(() => errorMsg.style.display = 'none', 3500);
-    }
-  } catch (e) {
-    console.error(e);
-    alert('Encryption API not available in this browser.');
-  }
-}
-
-/* Restore & build for A/B/C/D (same as before, with D now also restoring owner fields) */
-function restoreFields(){
-  const saved = loadState();
-  if (!saved) return;
-  nameEl.value = saved.name || '';
-  recipientEl.value = saved.recipient || '';
-  icEl.value = saved.ic || '';
-}
-function restoreFieldsB(){
-  const saved = loadStateB();
-  if (!saved) return;
-  b_name.value = saved.name || '';
-  b_recipient.value = saved.recipient || '';
-  b_ic.value = saved.ic || '';
-}
-function restoreFieldsC(){
-  const saved = loadStateC();
-  if (!saved) return;
-  c_name.value = saved.name || '';
-  c_recipient.value = saved.recipient || '';
-  c_ic.value = saved.ic || '';
-}
-function restoreFieldsD(){
-  const saved = loadStateD();
-  if (!saved) return;
-  d_name.value = saved.name || '';
-  d_recipient.value = saved.recipient || '';
-  d_ic.value = saved.ic || '';
-  if (d_myPhone) d_myPhone.value = saved.myPhone || '';
-  if (d_myName) d_myName.value = saved.myName || '';
-}
-
-/* Build template functions (A/B/C/D) - updated per your requests */
-
-/* Build template A */
-function buildTemplate(){
-  const name = (nameEl.value || '[NAME]').trim();
-  const companyEls = Array.from(companyListEl.querySelectorAll('.company-item'));
-  let lines = [];
-  let total = 0;
-  companyEls.forEach((el)=>{
-    const nameVal = el.querySelector('.labelInput').value.trim();
-    const amountVal = el.querySelector('.amountInput').value.trim();
-    const deleted = el.querySelector('.delCheckbox').checked;
-    if (deleted) return;
-    if (!amountVal) return;
-    const num = numberFromInput(amountVal);
-    if (!isNaN(num)) {
-      total += num;
-    }
-    lines.push(`${nameVal || 'Syarikat'} – RM ${amountVal}`);
-  });
-  const detailBayaran = lines.length ? lines.join('\n') : '(Tiada bayaran ditetapkan)';
-  const recipient = (recipientEl.value || '').trim();
-  const ic = (icEl.value || '').trim();
-
-  const output = `Hi Boss Saya ${name} dari Syarikat STAGSMUTUAL（P.C 601）
-
-Link permohonan pinjaman Boss:  
-🔗 https://stagsmutual.com
-
-*DETAIL BAYARAN:*  
-${detailBayaran}
-
-👤 NAMA: ${recipient}  
-🆔 IC: ${ic}  
-💳 JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*
-
-⚠️ HARI INI ADALAH TARIKH AKHIR untuk membuat bayaran pengesahan.
-
-*SOP Bayaran (Sebelum 3:00 PETANG hari ini):*  
-1. Minta nombor akaun transfer daripada saya  
-2. Buat bayaran ke akaun yang diberikan  
-3. Hantar resit bayaran untuk kemaskini sistem
-
-⚠️ *PENTING:*  
-Sebelum 5 minit nak transfer, SILA MINTA AKAUN daripada saya.  
-Jangan transfer ke akaun lain!
-
-Sekiranya sudah bayar, sila hantar resit sekarang.  
-Terima kasih atas kerjasama Boss! 🙏`;
-  return {output, total, meta:{recipient: recipient || null, ic: ic || null}};
-}
-
-/* Build template B */
-function buildTemplateBTextFromB(){
-  const name = (b_name.value || '[NAME]').trim();
-  const companyEls = Array.from(b_companyList.querySelectorAll('.company-item-b'));
-  const included = [];
-  let total = 0;
-  companyEls.forEach((el)=>{
-    const deleted = el.querySelector('.delCheckboxB').checked;
-    if (deleted) return;
-    const cname = (el.querySelector('.labelInputB').value || '').trim();
-    const camtRaw = (el.querySelector('.amountInputB').value || '').trim();
-    if (!camtRaw) return; // If no amount, skip the company
-    const num = numberFromInput(camtRaw);
-    if (!isNaN(num)) total += num;
-    included.push({ name: cname || 'Syarikat', amountRaw: camtRaw });
-  });
-
-  const recipient = (b_recipient.value || '').trim();
-  const ic = (b_ic.value || '').trim();
-
-  const lines = [];
-  // First line: requested format
-  lines.push(`📞Hi Boss, Saya ${name} dari Syarikat STAGSMUTUAL（P.C 601）`);
-  lines.push('');
-  lines.push(`*DETAIL BAYARAN:*  `);
-
-  if (included.length) {
-    included.forEach(c => {
-      lines.push(`${c.name} – RM ${c.amountRaw}`);
+    // logout
+    logoutBtn.addEventListener('click', ()=>{
+      mainApp.classList.remove('visible');
+      mainApp.setAttribute('aria-hidden','true');
+      passwordScreen.style.display = '';
+      passwordScreen.setAttribute('aria-hidden','false');
+      passwordInput.value = '';
+      captchaInput.value = '';
+      currentCaptcha = genCaptcha();
     });
-  } else {
-    lines.push(`(Tiada bayaran ditetapkan)`);
-  }
 
-  // Recipient/IC/Total directly under DETAIL BAYARAN
-  lines.push('');
-  lines.push(`👤 NAMA: ${recipient}`);
-  lines.push(`🆔 IC: ${ic}`);
-  lines.push(`💳 JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*`);
-  lines.push('');
-  // Warning lines placed below
-  lines.push(`⚠️HARI INI SILA BAYAR *SEBELUM 3:00 PETANG* UNTUK AVOID CAJ`);
-  lines.push('');
-  lines.push(`⚠️SEBELUM 5MIN TRANSFER *MINTA ACC DARIPADA SAYA DAN IKUT SOP*`);
-  lines.push('');
-  lines.push(`TERIMA KASIH🙏`);
-
-  return { text: lines.join('\n'), total, meta: { recipient: recipient || null, ic: ic || null } };
-}
-
-/* Build template C (modified earlier) */
-function buildTemplateC(){
-  const name = (c_name.value || '[NAME]').trim();
-  const companyEls = Array.from(c_companyList.querySelectorAll('.company-item-c'));
-  const included = [];
-  let total = 0;
-  companyEls.forEach((el)=>{
-    const deleted = el.querySelector('.delCheckboxC').checked;
-    if (deleted) return;
-    const cname = (el.querySelector('.labelInputC').value || '').trim();
-    const camtRaw = (el.querySelector('.amountInputC').value || '').trim();
-    if (!camtRaw) return;
-    const num = numberFromInput(camtRaw);
-    if (!isNaN(num)) total += num;
-    included.push({ name: cname || 'Syarikat', amountRaw: camtRaw });
-  });
-
-  const recipient = (c_recipient.value || '').trim();
-  const ic = (c_ic.value || '').trim();
-
-  const lines = [];
-  // First line changed as requested
-  lines.push(`Hi TUAN/PUAN, ${name} dari Syarikat STAGSMUTUAL（P.C 601）`);
-  lines.push('');
-  // Nama / IC / JUMLAH (no emojis, labels changed)
-  lines.push(`Nama: ${recipient}`);
-  lines.push(`IC: ${ic}`);
-  lines.push(`JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*`);
-  lines.push('');
-  // Move KES DETAIL below the Nama/IC section
-  lines.push(`*KES DETAIL:*`);
-  if (included.length) {
-    included.forEach(c => {
-      lines.push(`${c.name} – RM ${c.amountRaw}`);
-    });
-  } else {
-    lines.push(`(Tiada bayaran ditetapkan)`);
-  }
-  lines.push('');
-  // Replace the previous warning text with the new text requested
-  lines.push(`Sila Minta Akaun Dari Saya *SEBELUM 3:00 PETANG* → Transfer → Hantar Resit`);
-  lines.push('');
-  lines.push(`Sila Hantar Resit ASAP Untuk Proses Kelulusan Akhir Dan Jangan Transfer Ke Akaun Lain!`);
-  lines.push('');
-  lines.push(`Terima Kasih Boss 🙏`);
-
-  return { text: lines.join('\n'), total, meta: { recipient: recipient || null, ic: ic || null } };
-}
-
-/* --- Modified buildTemplateD per your request --- */
-function buildTemplateD(){
-  const name = (d_name.value || '[NAME]').trim();
-  const companyEls = Array.from(d_companyList.querySelectorAll('.company-item-d'));
-  const included = [];
-  let total = 0;
-  companyEls.forEach((el)=>{
-    const deleted = el.querySelector('.delCheckboxD').checked;
-    if (deleted) return;
-    const cname = (el.querySelector('.labelInputD').value || '').trim();
-    const camtRaw = (el.querySelector('.amountInputD').value || '').trim();
-    if (!camtRaw) return;
-    const num = numberFromInput(camtRaw);
-    if (!isNaN(num)) total += num;
-    included.push({ name: cname || 'Syarikat', amountRaw: camtRaw });
-  });
-
-  const recipient = (d_recipient.value || '').trim();
-  const ic = (d_ic.value || '').trim();
-  const myPhone = (d_myPhone && d_myPhone.value) ? d_myPhone.value.trim() : '';
-  const myName = (d_myName && d_myName.value) ? d_myName.value.trim() : '';
-
-  const lines = [];
-  // First line changed as requested
-  lines.push(`📞Hi Cik, Saya ${name} dari Syarikat STAGSMUTUAL（P.C 601）`);
-  lines.push('');
-  // PRODUCT BAYARAN (replacing detail)
-  lines.push(`*PRODUCT BAYARAN:*`);
-  if (included.length) {
-    included.forEach(c => {
-      lines.push(`${c.name} – RM ${c.amountRaw}`);
-    });
-  } else {
-    lines.push(`(Tiada bayaran ditetapkan)`);
-  }
-  lines.push('');
-  // Keep NAMA/IC/JUMLAH as requested
-  lines.push(`👤 NAMA: ${recipient}`);
-  lines.push(`🆔 IC: ${ic}`);
-  lines.push(`💳 JUMLAH: *RM${isNaN(total) ? '0' : Math.round(total)}*`);
-  lines.push('');
-  // Keep warnings
-  lines.push(`⚠️HARI INI SILA BAYAR *SEBELUM 3:00 PETANG* UNTUK AVOID CAJ`);
-  lines.push('');
-  lines.push(`⚠️SEBELUM 5MIN TRANSFER *MINTA ACC DARIPADA SAYA DAN IKUT SOP*`);
-  lines.push('');
-  // Additional owner contact block
-  lines.push('——————————————————');
-  lines.push(`PHONE NO : ${myPhone}`);
-  lines.push(`NAME : ${myName}`);
-  lines.push('');
-  lines.push(`⚠️BYR DEKAT ACC NI YA SILA MINTA ACC DENGAN ACC NI⚠️`);
-  lines.push('');
-  lines.push(`TERIMA KASIH🙏`);
-
-  return { text: lines.join('\n'), total, meta: { recipient: recipient || null, ic: ic || null, myPhone: myPhone || null, myName: myName || null } };
-}
-/* --- end modified buildTemplateD --- */
-
-/* Buttons - A */
-generateBtn.addEventListener('click', ()=>{
-  const {output, total, meta} = buildTemplate();
-  outputEl.textContent = output;
-  totalDisplay.textContent = 'Jumlah: RM' + Math.round(total);
-  saveState();
-
-  const now = new Date().toISOString();
-  const entry = {
-    output,
-    total: Math.round(total),
-    meta,
-    saved_at: now,
-    template: 'A'
-  };
-  saveHistoryEntry(entry);
-});
-
-copyBtn.addEventListener('click', async ()=>{
-  const text = outputEl.textContent || '';
-  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
-  try {
-    await navigator.clipboard.writeText(text);
-    alert('Template telah disalin ke clipboard!');
-  } catch(e) {
-    console.error(e);
-    alert('Gagal salin — cuba guna penyemak imbas yang menyokong clipboard API.');
-  }
-});
-
-waBtn.addEventListener('click', ()=>{
-  const text = outputEl.textContent || '';
-  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
-  const encoded = encodeURIComponent(text);
-  const url = `https://wa.me/?text=${encoded}`;
-  window.open(url, '_blank');
-});
-
-downloadBtn.addEventListener('click', ()=>{
-  const text = outputEl.textContent || '';
-  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
-  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'pinjaman-template.txt';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-});
-
-/* Buttons - B */
-b_generateBtn.addEventListener('click', ()=>{
-  const { text, total, meta } = buildTemplateBTextFromB();
-  if (outputB_blank) outputB_blank.textContent = text;
-  if (outputB) outputB.textContent = '';
-  totalDisplayB.textContent = 'Jumlah: RM' + Math.round(total);
-  saveStateB();
-  const now = new Date().toISOString();
-  const entry = {
-    output: text,
-    total: Math.round(total),
-    meta,
-    saved_at: now,
-    template: 'B'
-  };
-  saveHistoryEntry(entry);
-});
-b_copyBtn.addEventListener('click', async ()=>{
-  const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
-  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
-  try { await navigator.clipboard.writeText(text); alert('Template B telah disalin ke clipboard!'); }
-  catch(e){ alert('Gagal salin — cuba penyemak imbas yang menyokong clipboard API.'); }
-});
-b_waBtn.addEventListener('click', ()=>{
-  const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
-  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
-  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-});
-b_downloadBtn.addEventListener('click', ()=>{
-  const text = (outputB_blank && outputB_blank.textContent) ? outputB_blank.textContent : '';
-  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
-  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
-  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pinjaman-template-b.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-});
-
-/* Buttons - C */
-c_generateBtn.addEventListener('click', ()=>{ const { text, total, meta } = buildTemplateC(); if (outputC_blank) outputC_blank.textContent = text; if (outputC) outputC.textContent = ''; totalDisplayC.textContent = 'Jumlah: RM' + Math.round(total); saveStateC(); const now = new Date().toISOString(); saveHistoryEntry({output:text,total:Math.round(total),meta,saved_at:now,template:'C'}); });
-c_copyBtn.addEventListener('click', async ()=>{ const text = (outputC_blank && outputC_blank.textContent) ? outputC_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } try { await navigator.clipboard.writeText(text); alert('Template C telah disalin ke clipboard!'); } catch(e){ alert('Gagal salin — cuba penyemak imbas yang menyokong clipboard API.'); } });
-c_waBtn.addEventListener('click', ()=>{ const text = (outputC_blank && outputC_blank.textContent) ? outputC_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'); });
-c_downloadBtn.addEventListener('click', ()=>{ const text = (outputC_blank && outputC_blank.textContent) ? outputC_blank.textContent : ''; if (!text) { alert('Sila generate template terlebih dahulu.'); return; } const blob = new Blob([text], {type:'text/plain;charset=utf-8'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pinjaman-template-c.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
-
-/* Buttons - D */
-d_generateBtn.addEventListener('click', ()=>{
-  const { text, total, meta } = buildTemplateD();
-  if (outputD_blank) outputD_blank.textContent = text;
-  if (outputD) outputD.textContent = '';
-  totalDisplayD.textContent = 'Jumlah: RM' + Math.round(total);
-  saveStateD();
-  const now = new Date().toISOString();
-  const entry = {
-    output: text,
-    total: Math.round(total),
-    meta,
-    saved_at: now,
-    template: 'D'
-  };
-  saveHistoryEntry(entry);
-});
-d_copyBtn.addEventListener('click', async ()=>{
-  const text = (outputD_blank && outputD_blank.textContent) ? outputD_blank.textContent : '';
-  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
-  try { await navigator.clipboard.writeText(text); alert('Template D telah disalin ke clipboard!'); }
-  catch(e){ alert('Gagal salin — cuba penyemak imbas yang menyokong clipboard API.'); }
-});
-d_waBtn.addEventListener('click', ()=>{
-  const text = (outputD_blank && outputD_blank.textContent) ? outputD_blank.textContent : '';
-  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
-  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-});
-d_downloadBtn.addEventListener('click', ()=>{
-  const text = (outputD_blank && outputD_blank.textContent) ? outputD_blank.textContent : '';
-  if (!text) { alert('Sila generate template terlebih dahulu.'); return; }
-  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
-  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pinjaman-template-d.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-});
-
-/* History UI */
-function openHistory(){ renderHistoryList(); historyModal.style.display = 'flex'; historyModal.setAttribute('aria-hidden','false'); }
-function closeHistory(){ historyModal.style.display = 'none'; historyModal.setAttribute('aria-hidden','true'); }
-
-function renderHistoryList(){
-  const arr = loadHistory();
-  histListEl.innerHTML = '';
-  if (!arr || arr.length === 0){ histEmptyEl.style.display = 'block'; return; }
-  histEmptyEl.style.display = 'none';
-  arr.forEach((it, idx) => {
-    const item = document.createElement('div'); item.className = 'hist-item';
-    const meta = document.createElement('div'); meta.className = 'hist-meta';
-    const title = document.createElement('div'); title.style.color = 'var(--text)'; title.style.fontWeight = '600';
-    const summary = (it.output || '').split('\n')[0] || '(kosong)';
-    title.innerText = summary.length > 80 ? summary.slice(0,77) + '...' : summary;
-    const sub = document.createElement('div'); sub.className = 'tiny';
-    sub.innerText = `${fmtTime(it.saved_at)} — Jumlah: RM${it.total || 0} — Templat: ${it.template || 'A'}`;
-    meta.appendChild(title); meta.appendChild(sub);
-    const actions = document.createElement('div'); actions.className = 'hist-actions';
-    const viewBtn = document.createElement('button'); viewBtn.className = 'ghost'; viewBtn.innerText = 'View';
-    viewBtn.addEventListener('click', ()=>{
-      if (it.template === 'B') { showPage(1); if (outputB_blank) outputB_blank.textContent = it.output || ''; totalDisplayB.textContent = 'Jumlah: RM' + Math.round(it.total || 0); }
-      else if (it.template === 'C') { showPage(2); if (outputC_blank) outputC_blank.textContent = it.output || ''; totalDisplayC.textContent = 'Jumlah: RM' + Math.round(it.total || 0); }
-      else if (it.template === 'D') { showPage(3); if (outputD_blank) outputD_blank.textContent = it.output || ''; totalDisplayD.textContent = 'Jumlah: RM' + Math.round(it.total || 0); }
-      else { showPage(0); outputEl.textContent = it.output || ''; totalDisplay.textContent = 'Jumlah: RM' + Math.round(it.total || 0); }
-    });
-    const copyBtn = document.createElement('button'); copyBtn.className = 'alt'; copyBtn.innerText = 'Copy';
-    copyBtn.addEventListener('click', async ()=>{ try { await navigator.clipboard.writeText(it.output || ''); alert('Sejarah disalin ke clipboard!'); } catch(e) { alert('Gagal salin sejarah.'); } });
-    const delBtn = document.createElement('button'); delBtn.className = 'alt'; delBtn.innerText = 'Del';
-    delBtn.addEventListener('click', ()=>{ if (!confirm('Padam rekod ini?')) return; deleteHistoryAt(idx); renderHistoryList(); });
-    actions.appendChild(viewBtn); actions.appendChild(copyBtn); actions.appendChild(delBtn);
-    item.appendChild(meta); item.appendChild(actions); histListEl.appendChild(item);
-  });
-}
-
-closeHistoryBtn.addEventListener('click', closeHistory);
-historyBtn.addEventListener('click', openHistory);
-b_historyBtn.addEventListener('click', openHistory);
-c_historyBtn?.addEventListener('click', openHistory);
-d_historyBtn?.addEventListener('click', openHistory);
-exportHistoryBtn.addEventListener('click', ()=>{
-  const arr = loadHistory();
-  const blob = new Blob([JSON.stringify(arr, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'pjm_history.json';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-});
-clearHistoryBtn.addEventListener('click', ()=>{
-  if (!confirm('Clear all history?')) return;
-  clearHistory();
-  renderHistoryList();
-});
-
-/* ---------- 新的 Add / Reset 公司行逻辑（替换原有同名段） ---------- */
-
-/* 默认 7 个公司名称（Reset 将恢复为这些） */
-const DEFAULT_COMPANY_NAMES = [
-  "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘾𝙚𝙥𝙖𝙩",
-  "𝙎𝙬𝙞𝙛𝙩 𝙇𝙤𝙖𝙣",
-  "𝙁𝙡𝙚𝙭𝙞 𝙇𝙤𝙖𝙣",
-  "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝙋𝙖𝙨𝙩𝙞",
-  "𝙋𝙞𝙣𝙟𝙖𝙢𝙖𝙣 𝘽𝙞𝙟𝙖𝙠",
-  "𝙂𝙊 𝙇𝙤𝙖𝙣",
-  "𝙀𝙭𝙥𝙧𝙚𝙨𝙨 𝙇𝙤𝙖𝙣"
-];
-
-/**
- * 完全重置到默认 7 行：
- * - 删除列表内所有现有行
- * - 重新创建 7 行（名称来自 DEFAULT_COMPANY_NAMES，金额置空）
- * - 调用对应的 saveFn 保存状态
- *
- * 参数：
- * listEl - 容器元素（例如 companyListEl, b_companyList 等）
- * createRowFn - 对应页面的行创建函数（createCompanyRow / createCompanyRowB / ...）
- * saveFn - 对应页面的保存函数（saveState / saveStateB / ...）
- */
-function fullResetToDefaultSeven(listEl, createRowFn, saveFn){
-  // 清空容器（移除所有行）
-  listEl.innerHTML = '';
-  // 按默认 7 个名称重建行（金额为空）
-  DEFAULT_COMPANY_NAMES.forEach(name => {
-    const row = createRowFn({ name, amount: '' });
-    listEl.appendChild(row);
-  });
-  // 保存（尝试调用）
-  try { saveFn(); } catch(e) { console.warn('保存 state 失败', e); }
-}
-
-/* --- A 页面：添加 / 完全重置 --- */
-addCompanyBtn.removeEventListener?.('click', ()=>{}); // no-op safety
-addCompanyBtn.addEventListener('click', ()=>{
-  const r = createCompanyRow({});
-  companyListEl.appendChild(r);
-  saveState();
-});
-// 将 Reset 绑定为“完全重置为 7 行默认名称（删除额外行）”
-resetCompaniesBtn.replaceWith(resetCompaniesBtn.cloneNode(true));
-document.getElementById('resetCompaniesBtn').addEventListener('click', ()=>{
-  // （可选）如果希望提示确认，请取消下一行注释
-  // if (!confirm('确定要重置并删除第 7 行以外的所有行吗？')) return;
-  fullResetToDefaultSeven(companyListEl, createCompanyRow, saveState);
-});
-
-/* --- B 页面：添加 / 完全重置 --- */
-b_addCompanyBtn.removeEventListener?.('click', ()=>{});
-b_addCompanyBtn.addEventListener('click', ()=>{
-  const r = createCompanyRowB({});
-  b_companyList.appendChild(r);
-  saveStateB();
-});
-b_resetCompaniesBtn.replaceWith(b_resetCompaniesBtn.cloneNode(true));
-document.getElementById('b_resetCompaniesBtn').addEventListener('click', ()=>{
-  // if (!confirm('确定要重置并删除第 7 行以外的所有行吗？')) return;
-  fullResetToDefaultSeven(b_companyList, createCompanyRowB, saveStateB);
-});
-
-/* --- C 页面：添加 / 完全重置 --- */
-c_addCompanyBtn.removeEventListener?.('click', ()=>{});
-c_addCompanyBtn.addEventListener('click', ()=>{
-  const r = createCompanyRowC({});
-  c_companyList.appendChild(r);
-  saveStateC();
-});
-c_resetCompaniesBtn.replaceWith(c_resetCompaniesBtn.cloneNode(true));
-document.getElementById('c_resetCompaniesBtn').addEventListener('click', ()=>{
-  // if (!confirm('确定要重置并删除第 7 行以外的所有行吗？')) return;
-  fullResetToDefaultSeven(c_companyList, createCompanyRowC, saveStateC);
-});
-
-/* --- D 页面：添加 / 完全重置 --- */
-d_addCompanyBtn.removeEventListener?.('click', ()=>{});
-d_addCompanyBtn.addEventListener('click', ()=>{
-  const r = createCompanyRowD({});
-  d_companyList.appendChild(r);
-  saveStateD();
-});
-d_resetCompaniesBtn.replaceWith(d_resetCompaniesBtn.cloneNode(true));
-document.getElementById('d_resetCompaniesBtn').addEventListener('click', ()=>{
-  // if (!confirm('确定要重置并删除第 7 行以外的所有行吗？')) return;
-  fullResetToDefaultSeven(d_companyList, createCompanyRowD, saveStateD);
-});
-
-/* ---------- End of replacement block ---------- */
-  
-/* Generic import helper: copy companies + fields from source page to target page.
-   srcPage and targetPage are 'A'|'B'|'C'|'D' */
-function importFromPage(srcPage, targetPage){
-  const mapping = {
-    A: { listEl: companyListEl, nameEl: nameEl, recipientEl: recipientEl, icEl: icEl, myPhoneEl: null, myNameEl: null },
-    B: { listEl: b_companyList, nameEl: b_name, recipientEl: b_recipient, icEl: b_ic, myPhoneEl: null, myNameEl: null },
-    C: { listEl: c_companyList, nameEl: c_name, recipientEl: c_recipient, icEl: c_ic, myPhoneEl: null, myNameEl: null },
-    D: { listEl: d_companyList, nameEl: d_name, recipientEl: d_recipient, icEl: d_ic, myPhoneEl: d_myPhone, myNameEl: d_myName }
-  };
-  const src = mapping[srcPage];
-  const tgt = mapping[targetPage];
-  if (!src || !tgt) return;
-
-  // read companies from source
-  const companyItems = Array.from(src.listEl.querySelectorAll('.company-row'));
-  const data = companyItems.map(el=>{
-    const inputs = el.querySelectorAll('input[type="text"]');
-    let nameVal = '';
-    let amtVal = '';
-    if (inputs.length >= 2) { nameVal = inputs[0].value || ''; amtVal = inputs[1].value || ''; }
-    else if (inputs.length === 1) { nameVal = inputs[0].value || ''; amtVal = ''; }
-    return { name: (nameVal || '').trim(), amount: (amtVal || '').trim(), deleted: !!el.querySelector('input[type="checkbox"]') && el.querySelector('input[type="checkbox"]').checked };
-  });
-
-  // clear target companies and create rows using target creators
-  tgt.listEl.innerHTML = '';
-  data.forEach(d=>{
-    if (targetPage === 'A') {
-      const r = createCompanyRow({ name: d.name, amount: d.amount, deleted: d.deleted });
-      tgt.listEl.appendChild(r);
-    } else if (targetPage === 'B') {
-      const r = createCompanyRowB({ name: d.name, amount: d.amount, deleted: d.deleted });
-      tgt.listEl.appendChild(r);
-    } else if (targetPage === 'C') {
-      const r = createCompanyRowC({ name: d.name, amount: d.amount, deleted: d.deleted });
-      tgt.listEl.appendChild(r);
-    } else if (targetPage === 'D') {
-      const r = createCompanyRowD({ name: d.name, amount: d.amount, deleted: d.deleted });
-      tgt.listEl.appendChild(r);
-    }
-  });
-
-  // copy top-level fields
-  if (src.nameEl && tgt.nameEl) tgt.nameEl.value = src.nameEl.value || '';
-  if (src.recipientEl && tgt.recipientEl) tgt.recipientEl.value = src.recipientEl.value || '';
-  if (src.icEl && tgt.icEl) tgt.icEl.value = src.icEl.value || '';
-  // for D: copy owner fields if source has them
-  if (tgt.myPhoneEl) tgt.myPhoneEl.value = src.myPhoneEl ? (src.myPhoneEl.value || '') : '';
-  if (tgt.myNameEl) tgt.myNameEl.value = src.myNameEl ? (src.myNameEl.value || '') : '';
-
-  // save target state
-  if (targetPage === 'A') saveState();
-  if (targetPage === 'B') saveStateB();
-  if (targetPage === 'C') saveStateC();
-  if (targetPage === 'D') saveStateD();
-}
-
-/* Hook import drawer buttons (use delegation for the buttons inside drawers) */
-function wireImportDrawer(drawerEl, toggleBtn){
-  // toggle handler
-  toggleBtn.addEventListener('click', (e)=>{
-    e.stopPropagation();
-    const open = drawerEl.classList.toggle('open');
-    toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    drawerEl.setAttribute('aria-hidden', open ? 'false' : 'true');
-  });
-  // click on items
-  drawerEl.addEventListener('click', (ev)=>{
-    const btn = ev.target.closest('button[data-src][data-target]');
-    if (!btn) return;
-    const src = btn.getAttribute('data-src');
-    const tgt = btn.getAttribute('data-target');
-    importFromPage(src, tgt);
-    // close drawer after import
-    drawerEl.classList.remove('open');
-    toggleBtn.setAttribute('aria-expanded','false');
-    drawerEl.setAttribute('aria-hidden','true');
-    ev.stopPropagation();
-  });
-}
-
-/* close all drawers utility */
-function closeAllImportDrawers(){
-  [importDrawerA, importDrawerB, importDrawerC, importDrawerD].forEach(d=>{
-    if (!d) return;
-    d.classList.remove('open');
-    d.setAttribute('aria-hidden','true');
-  });
-  [importToggleA, importToggleB, importToggleC, importToggleD].forEach(t=>{
-    if (!t) return;
-    t.setAttribute('aria-expanded','false');
-  });
-}
-
-/* click outside to close drawers */
-document.addEventListener('click', (e)=>{
-  const path = e.composedPath ? e.composedPath() : (e.path || []);
-  const isInsideAny = path.some(el => el && el.classList && el.classList.contains && (el.classList.contains('import-wrap') || el.classList.contains('import-drawer')));
-  if (!isInsideAny) closeAllImportDrawers();
-});
-
-/* wire up drawers */
-if (importDrawerA && importToggleA) wireImportDrawer(importDrawerA, importToggleA);
-if (importDrawerB && importToggleB) wireImportDrawer(importDrawerB, importToggleB);
-if (importDrawerC && importToggleC) wireImportDrawer(importDrawerC, importToggleC);
-if (importDrawerD && importToggleD) wireImportDrawer(importDrawerD, importToggleD);
-
-/* Back buttons in templates simply go back to main (A) */
-b_backBtn.addEventListener('click', ()=> showPage(0));
-c_backBtn.addEventListener('click', ()=> showPage(0));
-d_backBtn.addEventListener('click', ()=> showPage(0));
-
-/* Attach nav arrow handlers to all .nav-prev / .nav-next buttons (these exist on each page) */
-document.querySelectorAll('.nav-prev').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    if (btn.classList.contains('disabled')) return;
-    navigate(-1);
-  });
-});
-document.querySelectorAll('.nav-next').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    if (btn.classList.contains('disabled')) return;
-    navigate(1);
-  });
-});
-
-/* auto save states when inputs change */
-[nameEl, recipientEl, icEl].forEach(el=>el && el.addEventListener('input', saveState));
-[b_name, b_recipient, b_ic].forEach(el=>el && el.addEventListener('input', saveStateB));
-[c_name, c_recipient, c_ic].forEach(el=>el && el.addEventListener('input', saveStateC));
-[d_name, d_recipient, d_ic].forEach(el=>el && el.addEventListener('input', saveStateD));
-if (d_myPhone) d_myPhone.addEventListener('input', saveStateD);
-if (d_myName) d_myName.addEventListener('input', saveStateD);
-
-/* --- NEW: global Enter handler to auto-generate template for current page --- */
-/* When password screen is visible, Enter still triggers login (handled earlier). Once logged in,
-   pressing Enter anywhere (inputs/buttons) will trigger the generate action for the active page.
-   We prevent default to avoid accidental form submissions. */
-document.addEventListener('keydown', (e) => {
-  if (e.key !== 'Enter') return;
-  // If password screen is visible, allow existing password handlers to run (do not intercept)
-  if (passwordScreen && !passwordScreen.classList.contains('hidden')) return;
-  // Do not trigger when focus is inside a dialog contenteditable or textarea where Enter may be desired.
-  const active = document.activeElement;
-  if (active && (active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
-  // If user is typing in an input field, allow Enter to insert (but many inputs submit) - we still follow earlier behavior and trigger generate.
-  e.preventDefault();
-  switch (currentPageIndex) {
-    case 0: if (generateBtn) generateBtn.click(); break;
-    case 1: if (b_generateBtn) b_generateBtn.click(); break;
-    case 2: if (c_generateBtn) c_generateBtn.click(); break;
-    case 3: if (d_generateBtn) d_generateBtn.click(); break;
-    default: break;
-  }
-});
-/* --- end Enter handler --- */
-
-/* --- NEW: Left/Right arrow navigation for all pages --- */
-/* Left arrow navigates previous page, Right arrow navigates next page.
-   To avoid interfering with text editing, we ignore arrow navigation when focus is inside
-   an input, textarea, or contenteditable element. */
-document.addEventListener('keydown', (e) => {
-  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-  // If password screen is visible, do nothing (keep login behavior)
-  if (passwordScreen && !passwordScreen.classList.contains('hidden')) return;
-  const active = document.activeElement;
-  // If typing in a text field or textarea or contenteditable, do not navigate
-  if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
-  // Prevent default scrolling/paging
-  e.preventDefault();
-  if (e.key === 'ArrowLeft') {
-    navigate(-1);
-  } else if (e.key === 'ArrowRight') {
-    navigate(1);
-  }
-});
-/* --- end arrow navigation handler --- */
-
-/* initial render - keep behind password screen until login */
-renderDefaultCompanies();
-renderDefaultCompaniesB();
-renderDefaultCompaniesC();
-renderDefaultCompaniesD();
-
-</script>
+    // initialize small defaults like sample username from image
+    loginUser.value = 'ml-02';
+  </script>
 </body>
 </html>
